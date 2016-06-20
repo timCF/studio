@@ -142,12 +142,13 @@ CREATE TABLE `bands` (
 DROP TABLE IF EXISTS `sessions`;
 CREATE TABLE `sessions` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
-	`time_from` timestamp NOT NULL,
-	`time_to` timestamp NOT NULL,
+	`time_from` bigint unsigned NOT NULL,
+	`time_to` bigint unsigned NOT NULL,
 	`week_day` int unsigned NOT NULL, # 1..7
 	`room_id` bigint unsigned NOT NULL,
 	`instruments_ids` varchar(1024) NOT NULL, # json list [1,2,3 ... ]
 	`band_id` bigint unsigned NOT NULL,
+	`callback` int unsigned NOT NULL, # if not acceptable now, admin can call back later
 	`status` int unsigned NOT NULL, # 0 - awaiting , 1 - awaiting first , 2 - denied from queue , 3 - canceled , 4 - hard canceled , 5 - done ok
 	`price` bigint unsigned NOT NULL, # result price
 	`description` BLOB NOT NULL DEFAULT '',
@@ -163,6 +164,7 @@ CREATE TABLE `sessions` (
 	KEY `room_id` (`room_id`),
 	KEY `instruments_ids` (`instruments_ids`),
 	KEY `band_id` (`band_id`),
+	KEY `callback` (`callback`),
 	KEY `status` (`status`),
 	UNIQUE KEY `full` (`time_from`, `time_to`, `week_day`, `room_id`, `band_id`),
 	KEY `price` (`price`),

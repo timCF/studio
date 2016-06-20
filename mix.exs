@@ -14,7 +14,11 @@ defmodule Studio.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger],
+    [applications: [
+						:logger,
+						:silverb,
+						:sqlx
+					],
      mod: {Studio, []}]
   end
 
@@ -27,7 +31,10 @@ defmodule Studio.Mixfile do
   #   {:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"}
   #
   # Type "mix help deps" for more examples and options
-  defp deps do
-    []
-  end
+	defp deps do
+		[
+			{:silverb, github: "timCF/silverb"},
+			{:sqlx, github: "timCF/sqlx"}
+		]
+	end
 end

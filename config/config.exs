@@ -28,3 +28,16 @@ use Mix.Config
 # here (which is why it is important to import them last).
 #
 #     import_config "#{Mix.env}.exs"
+
+config :sqlx,
+	timeout: 60000,
+	pools:	[
+				studio: [
+							size: 10,
+							user: 'root',
+							password: '',
+							host: '127.0.0.1',
+							database: 'studio',
+							encoding: :utf8
+						]
+			]
