@@ -11,10 +11,10 @@ DROP TABLE IF EXISTS `admins`;
 CREATE TABLE `admins` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
 	`name` varchar(255) NOT NULL,
-	`contacts` varchar(255) NOT NULL, # json {phones: [], mails: [], social: [], other: []}
+	`contacts` varchar(255) NOT NULL, # {phones: [], mails: [], social: [], other: []}
 	`login` varchar(255) NOT NULL,
 	`password` varchar(255) NOT NULL,
-	`enabled` int unsigned NOT NULL,
+	`enabled` boolean NOT NULL,
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `name` (`name`),
@@ -32,7 +32,7 @@ CREATE TABLE `locations` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
 	`name` varchar(255) NOT NULL,
 	`description` BLOB NOT NULL DEFAULT '',
-	`enabled` int unsigned NOT NULL,
+	`enabled` boolean NOT NULL,
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `name` (`name`),
@@ -49,7 +49,7 @@ CREATE TABLE `rooms` (
 	`location_id` bigint unsigned NOT NULL,
 	`description` BLOB NOT NULL DEFAULT '',
 	`price_base` bigint unsigned NOT NULL,
-	`enabled` int unsigned NOT NULL,
+	`enabled` boolean NOT NULL,
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `full` (`name`,`location_id`),
@@ -63,13 +63,13 @@ CREATE TABLE `rooms` (
 DROP TABLE IF EXISTS `discount_const`;
 CREATE TABLE `discount_const` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
-	`room_id` bigint unsigned NOT NULL, # IF 0 - DEFAULT FOR ALL ROOMS ( !!!if room not exist here!!! )
-	`band_kind` int unsigned NOT NULL, # 1 - base , 2 - cover , 3 - education # 0 - DEFAULT !!!
-	`number_from` int unsigned NOT NULL, # number of sessions for 32 days ...
-	`min_from` int unsigned NOT NULL, # min from day begin
-	`week_day` int unsigned NOT NULL, # 1..7 # 0 - DEFAULT !!!
+	`room_id` bigint unsigned NOT NULL, # IF 0 - DEFAULT FOR ALL ROOMS ( !!! if room not exist in this tab !!! )
+	`band_kind` ENUM('BK_default','BK_base','BK_cover','BK_education') NOT NULL,
+	`number_from` int unsigned NOT NULL, # number of sessions for 32 days >= 0
+	`min_from` int unsigned NOT NULL, # minutes from day begin
+	`week_day` ENUM('WD_default','WD_1','WD_2','WD_3','WD_4','WD_5','WD_6','WD_7') NOT NULL,
 	`amount` bigint unsigned NOT NULL, # amount of discount in rub
-	`fixprice` int unsigned NOT NULL, # if 1, cash is not applicative , get amount directly!!!
+	`fixprice` boolean NOT NULL, # if 1, cash is not applicative discount , get amount directly !!!
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `full` (`room_id`,`band_kind`,`number_from`,`min_from`,`week_day`),
@@ -95,9 +95,35 @@ CREATE TABLE `instruments` (
 	`location_id` bigint unsigned NOT NULL,
 	`description` BLOB NOT NULL DEFAULT '',
 	`price` bigint unsigned NOT NULL,
+	`enabled` boolean NOT NULL,
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `full` (`name`,`location_id`),
+	KEY `price` (`price`),
+	KEY `stamp` (`stamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+#
+#	SUPER ADMIN in + ADMIN out level
+#
+
+
+
+DROP TABLE IF EXISTS `stuff2sell`;
+CREATE TABLE `stuff2sell` (
+	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
+	`name` varchar(255) NOT NULL,
+	`location_id` bigint unsigned NOT NULL,
+	`description` BLOB NOT NULL DEFAULT '',
+	`quantity` int unsigned NOT NULL,
+	`price` bigint unsigned NOT NULL,
+	`enabled` boolean NOT NULL,
+	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`),
+	UNIQUE KEY `full` (`name`,`location_id`),
+	KEY `quantity` (`quantity`),
 	KEY `price` (`price`),
 	KEY `stamp` (`stamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -115,13 +141,13 @@ CREATE TABLE `bands` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
 	`name` varchar(255) NOT NULL,
 	`person` varchar(255) NOT NULL,
-	`contacts` varchar(255) NOT NULL, # json {phones: [], mails: [], social: [], other: []}
-	`kind` int unsigned NOT NULL, # 1 - base , 2 - cover , 3 - education
+	`contacts` varchar(255) NOT NULL, # {phones: [], mails: [], social: [], other: []}
+	`kind` ENUM('BK_base','BK_cover','BK_education') NOT NULL, # WITHOUT DEFAULT VALUE
 	`description` BLOB NOT NULL DEFAULT '',
 	`balance` bigint NOT NULL,
 	`admin_id` bigint unsigned NOT NULL,
-	`can_order` int unsigned NOT NULL, # can order session in client app
-	`enabled` int unsigned NOT NULL,
+	`can_order` boolean NOT NULL, # can order session in client app
+	`enabled` boolean NOT NULL,
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
 	KEY `name` (`name`),
@@ -144,15 +170,15 @@ CREATE TABLE `sessions` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
 	`time_from` bigint unsigned NOT NULL,
 	`time_to` bigint unsigned NOT NULL,
-	`week_day` int unsigned NOT NULL, # 1..7
+	`week_day` ENUM('WD_1','WD_2','WD_3','WD_4','WD_5','WD_6','WD_7') NOT NULL, # WITHOUT DEFAULT VALUE
 	`room_id` bigint unsigned NOT NULL,
 	`instruments_ids` varchar(1024) NOT NULL, # json list [1,2,3 ... ]
 	`band_id` bigint unsigned NOT NULL,
-	`callback` int unsigned NOT NULL, # if not acceptable now, admin can call back later
-	`status` int unsigned NOT NULL, # 0 - awaiting , 1 - awaiting first , 2 - denied from queue , 3 - canceled , 4 - hard canceled , 5 - done ok
-	`price` bigint unsigned NOT NULL, # result price
+	`callback` boolean NOT NULL, # if not acceptable now for order, admin can call back later
+	`status` ENUM('SS_awaiting_last','SS_awaiting_first','SS_closed_auto','SS_closed_ok','SS_canceled_soft','SS_canceled_hard') NOT NULL,
+	`amount` bigint unsigned NOT NULL, # result amount
 	`description` BLOB NOT NULL DEFAULT '',
-	`ordered_by` int unsigned NOT NULL, # 0 - program ( root ) , 1 - admin , 2 - self
+	`ordered_by` ENUM('SO_auto','SO_admin','SO_self') NOT NULL,
 	`admin_id_open` bigint unsigned NOT NULL,
 	`admin_id_close` bigint unsigned NOT NULL,
 	`transaction_id` bigint unsigned DEFAULT NULL,
@@ -167,7 +193,7 @@ CREATE TABLE `sessions` (
 	KEY `callback` (`callback`),
 	KEY `status` (`status`),
 	UNIQUE KEY `full` (`time_from`, `time_to`, `week_day`, `room_id`, `band_id`),
-	KEY `price` (`price`),
+	KEY `amount` (`amount`),
 	KEY `ordered_by` (`ordered_by`),
 	KEY `admin_id_open` (`admin_id_open`),
 	KEY `admin_id_close` (`admin_id_close`),
@@ -182,13 +208,13 @@ CREATE TABLE `sessions_template` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
 	`min_from` int unsigned NOT NULL, # min from day begin
 	`min_to` int unsigned NOT NULL, # min from day begin
-	`week_day` int unsigned NOT NULL, # 1..7
+	`week_day` ENUM('WD_1','WD_2','WD_3','WD_4','WD_5','WD_6','WD_7') NOT NULL, # WITHOUT DEFAULT VALUE
 	`room_id` bigint unsigned NOT NULL,
 	`instruments_ids` varchar(1024) NOT NULL, # json list [1,2,3 ... ]
 	`band_id` bigint unsigned NOT NULL,
 	`description` BLOB NOT NULL DEFAULT '',
 	`admin_id` bigint unsigned NOT NULL,
-	`enabled` int unsigned NOT NULL,
+	`enabled` boolean NOT NULL,
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
 	KEY `min_from` (`min_from`),
@@ -208,18 +234,20 @@ CREATE TABLE `sessions_template` (
 DROP TABLE IF EXISTS `transaction_id`;
 CREATE TABLE `transaction_id` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
-	`band_id` bigint unsigned NOT NULL,
-	`kind` int unsigned NOT NULL, # 0 - payment , 1 - deposit , 2 - punishment
-	`price` bigint unsigned NOT NULL, # - from balance
-	`cash_in` bigint unsigned NOT NULL, # + to balance
-	`cash_out` bigint unsigned NOT NULL, # - from balance
+	`kind` ENUM('TK_band_room','TK_band_instrument','TK_band_deposit','TK_band_punishment','TK_wage_base','TK_wage_bonus','TK_wage_punishment','TK_rent','TK_buy','TK_repair','TK_sell') NOT NULL, # WITHOUT DEFAULT VALUE
+	`subject_id` bigint unsigned NOT NULL, # band , admin or other stuff id
+	`subject_quantity` bigint unsigned NOT NULL,
+	`amount` bigint unsigned NOT NULL, # - from balance ( if band )
+	`cash_in` bigint unsigned NOT NULL, # + to balance ( if band )
+	`cash_out` bigint unsigned NOT NULL, # - from balance ( if band )
 	`description` BLOB NOT NULL DEFAULT '',
 	`admin_id` bigint unsigned NOT NULL,
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
-	KEY `band_id` (`band_id`),
 	KEY `kind` (`kind`),
-	KEY `price` (`price`),
+	KEY `subject_id` (`subject_id`),
+	KEY `subject_quantity` (`subject_quantity`),
+	KEY `amount` (`amount`),
 	KEY `cash_in` (`cash_in`),
 	KEY `cash_out` (`cash_out`),
 	KEY `admin_id` (`admin_id`),

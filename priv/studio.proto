@@ -36,19 +36,35 @@ message Room {
 }
 
 enum BandKind {
-	BK_base = 1;
-	BK_cover = 2;
-	BK_education = 3;
+	BK_default = 1;
+	BK_base = 2;
+	BK_cover = 3;
+	BK_education = 4;
 }
 
 enum WeekDay {
-	WD_1 = 1;
-	WD_2 = 2;
-	WD_3 = 3;
-	WD_4 = 4;
-	WD_5 = 5;
-	WD_6 = 6;
-	WD_7 = 7;
+	WD_default = 1;
+	WD_1 = 2;
+	WD_2 = 3;
+	WD_3 = 4;
+	WD_4 = 5;
+	WD_5 = 6;
+	WD_6 = 7;
+	WD_7 = 8;
+}
+
+enum TransactionKind {
+	TK_band_room = 1;
+	TK_band_instrument = 2;
+	TK_band_deposit = 3;
+	TK_band_punishment = 4;
+	TK_wage_base = 5;
+	TK_wage_bonus = 6;
+	TK_wage_punishment = 7;
+	TK_rent = 8;
+	TK_buy = 9;
+	TK_repair = 10;
+	TK_sell = 11;
 }
 
 message DiscountConst {
@@ -61,4 +77,27 @@ message DiscountConst {
 	required uint64 amount = 7;
 	required bool fixprice = 8;
 	optional uint64 stamp = 9;
+}
+
+message Instrument {
+	optional uint64 id = 1;
+	required string name = 2;
+	required uint64 location_id = 3;
+	required string description = 4;
+	required uint64 price = 5;
+	optional uint64 stamp = 6;
+}
+
+message Band {
+	optional uint64 id = 1;
+	required string name = 2;
+	required string person = 3;
+	required Contacts contacts = 4;
+	required BandKind kind = 5;
+	required string description = 6;
+	required int64 balance = 7;
+	required uint64 admin_id = 8;
+	required bool can_order = 9;
+	required bool enabled = 10;
+	optional uint64 stamp = 11;
 }
