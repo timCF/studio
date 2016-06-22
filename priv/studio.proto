@@ -1,39 +1,8 @@
 package lemooor.studio;
 
-message Contacts {
-	repeated string phones = 1;
-	repeated string mails = 2;
-	repeated string social = 3;
-	repeated string other = 4;
-}
-
-message Admin {
-	optional uint64 id = 1;
-	required string name = 2;
-	required Contacts contacts = 3;
-	required string login = 4;
-	required string password = 5;
-	required bool enabled = 6;
-	optional uint64 stamp = 7;
-}
-
-message Location {
-	optional uint64 id = 1;
-	required string name = 2;
-	required string description = 3;
-	required bool enabled = 4;
-	optional uint64 stamp = 5;
-}
-
-message Room {
-	optional uint64 id = 1;
-	required string name = 2;
-	required uint64 location_id = 3;
-	required string description = 4;
-	required uint64 price_base = 5;
-	required bool enabled = 6;
-	optional uint64 stamp = 7;
-}
+//
+//	commons enums
+//
 
 enum BandKind {
 	BK_default = 1;
@@ -67,6 +36,46 @@ enum TransactionKind {
 	TK_sell = 11;
 }
 
+message Contacts {
+	repeated string phones = 1;
+	repeated string mails = 2;
+	repeated string social = 3;
+	repeated string other = 4;
+}
+
+
+//
+// SUPERADMIN LEVEL
+//
+
+message Admin {
+	optional uint64 id = 1;
+	required string name = 2;
+	required Contacts contacts = 3;
+	required string login = 4;
+	required string password = 5;
+	required bool enabled = 6;
+	optional uint64 stamp = 7;
+}
+
+message Location {
+	optional uint64 id = 1;
+	required string name = 2;
+	required string description = 3;
+	required bool enabled = 4;
+	optional uint64 stamp = 5;
+}
+
+message Room {
+	optional uint64 id = 1;
+	required string name = 2;
+	required uint64 location_id = 3;
+	required string description = 4;
+	required uint64 price_base = 5;
+	required bool enabled = 6;
+	optional uint64 stamp = 7;
+}
+
 message DiscountConst {
 	optional uint64 id = 1;
 	required uint64 room_id = 2;
@@ -85,8 +94,41 @@ message Instrument {
 	required uint64 location_id = 3;
 	required string description = 4;
 	required uint64 price = 5;
-	optional uint64 stamp = 6;
+	required bool enabled = 6;
+	optional uint64 stamp = 7;
 }
+
+//
+//	SUPER ADMIN + ADMIN LEVEL
+//
+
+message Stuff2Sell {
+	optional uint64 id = 1;
+	required string name = 2;
+	required uint64 location_id = 3;
+	required string description = 4;
+	required uint64 quantity = 5;
+	required uint64 price = 6;
+	required bool enabled = 7;
+	optional uint64 stamp = 8;
+}
+
+message Transaction {
+	optional uint64 id = 1;
+	required TransactionKind kind = 2;
+	required uint64 subject_id = 3;
+	required uint64 subject_quantity = 4;
+	required uint64 amount = 5;
+	required uint64 cash_in = 6;
+	required uint64 cash_out = 7;
+	required string description = 8;
+	required uint64 admin_id = 9;
+	optional uint64 stamp = 10;
+}
+
+//
+//	ADMIN level
+//
 
 message Band {
 	optional uint64 id = 1;
@@ -98,6 +140,54 @@ message Band {
 	required int64 balance = 7;
 	required uint64 admin_id = 8;
 	required bool can_order = 9;
+	required bool enabled = 10;
+	optional uint64 stamp = 11;
+}
+
+enum SessionStatus {
+	SS_awaiting_last = 1;
+	SS_awaiting_first = 2;
+	SS_closed_auto = 3;
+	SS_closed_ok = 4;
+	SS_canceled_soft = 5;
+	SS_canceled_hard = 6;
+}
+
+enum SessionOrderedBy {
+	SO_auto = 1;
+	SO_admin = 2;
+	SO_self = 3;
+}
+
+message Session {
+	optional uint64 id = 1;
+	required uint64 time_from = 2;
+	required uint64 time_to = 3;
+	required WeekDay week_day = 4;
+	required uint64 room_id = 5;
+	repeated uint64 instruments_ids = 6;
+	required uint64 band_id = 7;
+	required bool callback = 8;
+	required SessionStatus status = 9;
+	required uint64 amount = 10;
+	required string description = 11;
+	required SessionOrderedBy ordered_by = 12;
+	required uint64 admin_id_open = 13;
+	required uint64 admin_id_close = 14;
+	required uint64 transaction_id = 15;
+	optional uint64 stamp = 16;
+}
+
+message SessionTemplate {
+	optional uint64 id = 1;
+	required uint32 min_from = 2;
+	required uint32 min_to = 3;
+	required WeekDay week_day = 4;
+	required uint64 room_id = 5;
+	repeated uint64 instruments_ids = 6;
+	required uint64 band_id = 7;
+	required string description = 8;
+	required uint64 admin_id = 9;
 	required bool enabled = 10;
 	optional uint64 stamp = 11;
 }

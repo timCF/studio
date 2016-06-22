@@ -106,7 +106,7 @@ CREATE TABLE `instruments` (
 
 
 #
-#	SUPER ADMIN in + ADMIN out level
+#	SUPER ADMIN + ADMIN
 #
 
 
@@ -117,7 +117,7 @@ CREATE TABLE `stuff2sell` (
 	`name` varchar(255) NOT NULL,
 	`location_id` bigint unsigned NOT NULL,
 	`description` BLOB NOT NULL DEFAULT '',
-	`quantity` int unsigned NOT NULL,
+	`quantity` bigint unsigned NOT NULL,
 	`price` bigint unsigned NOT NULL,
 	`enabled` boolean NOT NULL,
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -125,6 +125,31 @@ CREATE TABLE `stuff2sell` (
 	UNIQUE KEY `full` (`name`,`location_id`),
 	KEY `quantity` (`quantity`),
 	KEY `price` (`price`),
+	KEY `stamp` (`stamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+DROP TABLE IF EXISTS `transactions`;
+CREATE TABLE `transactions` (
+	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
+	`kind` ENUM('TK_band_room','TK_band_instrument','TK_band_deposit','TK_band_punishment','TK_wage_base','TK_wage_bonus','TK_wage_punishment','TK_rent','TK_buy','TK_repair','TK_sell') NOT NULL, # WITHOUT DEFAULT VALUE
+	`subject_id` bigint unsigned NOT NULL, # band , admin or other stuff id
+	`subject_quantity` bigint unsigned NOT NULL,
+	`amount` bigint unsigned NOT NULL, # - from balance ( if band )
+	`cash_in` bigint unsigned NOT NULL, # + to balance ( if band )
+	`cash_out` bigint unsigned NOT NULL, # - from balance ( if band )
+	`description` BLOB NOT NULL DEFAULT '',
+	`admin_id` bigint unsigned NOT NULL,
+	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`),
+	KEY `kind` (`kind`),
+	KEY `subject_id` (`subject_id`),
+	KEY `subject_quantity` (`subject_quantity`),
+	KEY `amount` (`amount`),
+	KEY `cash_in` (`cash_in`),
+	KEY `cash_out` (`cash_out`),
+	KEY `admin_id` (`admin_id`),
 	KEY `stamp` (`stamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -180,8 +205,8 @@ CREATE TABLE `sessions` (
 	`description` BLOB NOT NULL DEFAULT '',
 	`ordered_by` ENUM('SO_auto','SO_admin','SO_self') NOT NULL,
 	`admin_id_open` bigint unsigned NOT NULL,
-	`admin_id_close` bigint unsigned NOT NULL,
-	`transaction_id` bigint unsigned DEFAULT NULL,
+	`admin_id_close` bigint unsigned NOT NULL, # 0 if not closed yet
+	`transaction_id` bigint unsigned DEFAULT NULL, # 0 if not closed yet
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
 	KEY `time_from` (`time_from`),
@@ -226,30 +251,5 @@ CREATE TABLE `sessions_template` (
 	UNIQUE KEY `full` (`min_from`, `min_to`, `week_day`, `room_id`, `band_id`),
 	KEY `admin_id` (`admin_id`),
 	KEY `enabled` (`enabled`),
-	KEY `stamp` (`stamp`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-DROP TABLE IF EXISTS `transaction_id`;
-CREATE TABLE `transaction_id` (
-	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
-	`kind` ENUM('TK_band_room','TK_band_instrument','TK_band_deposit','TK_band_punishment','TK_wage_base','TK_wage_bonus','TK_wage_punishment','TK_rent','TK_buy','TK_repair','TK_sell') NOT NULL, # WITHOUT DEFAULT VALUE
-	`subject_id` bigint unsigned NOT NULL, # band , admin or other stuff id
-	`subject_quantity` bigint unsigned NOT NULL,
-	`amount` bigint unsigned NOT NULL, # - from balance ( if band )
-	`cash_in` bigint unsigned NOT NULL, # + to balance ( if band )
-	`cash_out` bigint unsigned NOT NULL, # - from balance ( if band )
-	`description` BLOB NOT NULL DEFAULT '',
-	`admin_id` bigint unsigned NOT NULL,
-	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	PRIMARY KEY (`id`),
-	KEY `kind` (`kind`),
-	KEY `subject_id` (`subject_id`),
-	KEY `subject_quantity` (`subject_quantity`),
-	KEY `amount` (`amount`),
-	KEY `cash_in` (`cash_in`),
-	KEY `cash_out` (`cash_out`),
-	KEY `admin_id` (`admin_id`),
 	KEY `stamp` (`stamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
