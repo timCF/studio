@@ -191,3 +191,21 @@ message SessionTemplate {
 	required bool enabled = 10;
 	optional uint64 stamp = 11;
 }
+
+//
+//	html request - response
+//
+
+message ResponseState {
+	required string hash = 1;
+	repeated Admin admins = 2;
+	repeated Location locations = 3;
+	repeated Room rooms = 4;
+	repeated DiscountConst discount_const = 5;
+	repeated Instrument instruments = 6;
+	repeated Stuff2Sell stuff2sell = 7;
+	repeated Transaction transactions = 8;
+	repeated Band bands = 9;
+	repeated Session sessions = 10;
+	repeated SessionTemplate sessions_template = 11;
+}
