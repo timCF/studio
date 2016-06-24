@@ -19,6 +19,8 @@ defmodule Studio.Mixfile do
 						:silverb,
 						:sqlx,
 						:exprotobuf,
+						:timex,
+						:cachex,
 					],
      mod: {Studio, []}]
   end
@@ -37,6 +39,8 @@ defmodule Studio.Mixfile do
 			{:silverb, github: "timCF/silverb"},
 			{:sqlx, github: "timCF/sqlx"},
 			{:exprotobuf, github: "bitwalker/exprotobuf"},
+			{:timex, github: "bitwalker/timex", tag: "2.2.1"},
+			{:cachex, github: "timCF/cachex"},
 		]
 	end
 end
