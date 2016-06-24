@@ -2,6 +2,10 @@ defmodule Studio do
 	use Application
 	use Silverb
 
+	defmodule Proto do
+		use Protobuf, from: Path.expand("#{Exutils.priv_dir(:studio)}/studio_proto/studio.proto", __DIR__)
+	end
+
 	# See http://elixir-lang.org/docs/stable/elixir/Application.html
 	# for more information on OTP Applications
 	def start(_type, _args) do

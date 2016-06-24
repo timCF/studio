@@ -1,0 +1,3 @@
+[submodule "priv/studio_proto"]
+	path = priv/studio_proto
+	url = git@github.com:timCF/studio_proto.git

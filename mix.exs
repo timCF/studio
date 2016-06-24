@@ -17,7 +17,8 @@ defmodule Studio.Mixfile do
     [applications: [
 						:logger,
 						:silverb,
-						:sqlx
+						:sqlx,
+						:exprotobuf,
 					],
      mod: {Studio, []}]
   end
@@ -34,7 +35,8 @@ defmodule Studio.Mixfile do
 	defp deps do
 		[
 			{:silverb, github: "timCF/silverb"},
-			{:sqlx, github: "timCF/sqlx"}
+			{:sqlx, github: "timCF/sqlx"},
+			{:exprotobuf, github: "bitwalker/exprotobuf"},
 		]
 	end
 end
