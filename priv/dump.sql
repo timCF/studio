@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS `admins`;
 CREATE TABLE `admins` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
 	`name` varchar(255) NOT NULL,
-	`contacts` varchar(255) NOT NULL, # {phones: [], mails: [], social: [], other: []}
+	`contacts` varchar(255) NOT NULL, # json {phones: [], mails: [], social: [], other: []}
 	`login` varchar(255) NOT NULL,
 	`password` varchar(255) NOT NULL,
 	`enabled` boolean NOT NULL,
@@ -166,7 +166,7 @@ CREATE TABLE `bands` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
 	`name` varchar(255) NOT NULL,
 	`person` varchar(255) NOT NULL,
-	`contacts` varchar(255) NOT NULL, # {phones: [], mails: [], social: [], other: []}
+	`contacts` varchar(255) NOT NULL, # json {phones: [], mails: [], social: [], other: []}
 	`kind` ENUM('BK_base','BK_cover','BK_education') NOT NULL, # WITHOUT DEFAULT VALUE
 	`description` BLOB NOT NULL DEFAULT '',
 	`balance` bigint NOT NULL,
