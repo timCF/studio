@@ -47,5 +47,5 @@ config :wwwest_lite,
 	server_timeout: 120000, # timeout for all requests
 	memo_ttl: 5000, # timeout for memorize json encode and decode
 	callback_module: Studio.WwwestLite, # here are handlers for requests
-	post_data_type: :any, # | :xml | :any # it's data type of post q for decoding
+	post_data_type: :protobuf, # | :xml | :any # it's data type of post q for decoding
 	crossdomain: true

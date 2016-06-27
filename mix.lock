@@ -35,5 +35,5 @@
   "tinca": {:git, "https://github.com/timCF/tinca.git", "5fcfa011477d7f14d8bc44f5dbd385f33c672818", []},
   "tzdata": {:hex, :tzdata, "0.5.8", "a4ffe564783c6519e4df230a5d0e1cf44b7db7f576bcae76d05540b5da5b6143", [:mix], [{:hackney, "~> 1.0", [hex: :hackney, optional: false]}]},
   "uuid": {:git, "https://github.com/okeuday/uuid.git", "fdd2861e2f5049c25d44ff342c9756ce64a2a783", []},
-  "wwwest_lite": {:git, "https://github.com/timCF/wwwest_lite.git", "f3d365b8683868ad70cad77b5047c7b5c6494e3b", []},
+  "wwwest_lite": {:git, "https://github.com/timCF/wwwest_lite.git", "bc4433035166baf7bfa54547d9f1391bb8d5ba08", []},
   "xmlex": {:git, "https://github.com/timCF/xmlex.git", "e4f02ad350f97dca89a471b05eb7554b192a5f4c", []}}
