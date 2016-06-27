@@ -11,6 +11,7 @@ defmodule Studio do
 	# for more information on OTP Applications
 	def start(_type, _args) do
 		import Supervisor.Spec, warn: false
+		Enum.each([:studio_superadmin], &(:ok = :pg2.create(&1)))
 
 		children = [
 			worker(Studio.Loaders.Superadmin, [])

@@ -2,8 +2,8 @@ defmodule Studio.Storage do
 	use Silverb, [
 		# WARNING !!! these fields always are enums, timestamps, booleans in mysql !!!
 		{"@mysql_enums", [:band_kind, :week_day, :kind, :status, :ordered_by]},
-		{"@mysql_timestamps", [:stamp]},
-		{"@mysql_unixtime", [:time_from, :time_to]},
+		{"@mysql_timestamps", [:stamp, :time_from, :time_to]},
+		{"@mysql_unixtime", []},
 		{"@mysql_booleans", [:enabled, :fixprice, :can_order, :callback]},
 		{"@mysql_jsons", [:contacts, :instruments_ids]},
 		{"@mysql_structs", %{
@@ -42,7 +42,7 @@ defmodule Studio.Storage do
 		Enum.reduce(data, %{}, fn
 			{k,v}, acc when (k in @mysql_enums) -> Map.put(acc, k, String.to_atom(v))
 			{k,{:datetime,v}}, acc when (k in @mysql_timestamps) -> Map.put(acc, k, Timex.DateTime.from(v))
-			{k,v}, acc when (k in @mysql_unixtime) -> Map.put(acc, k, Timex.DateTime.from_seconds(v))
+			# {k,v}, acc when (k in @mysql_unixtime) -> Map.put(acc, k, Timex.DateTime.from_seconds(v))
 			{k,0}, acc when (k in @mysql_booleans) -> Map.put(acc, k, false)
 			{k,1}, acc when (k in @mysql_booleans) -> Map.put(acc, k, true)
 			{k,v}, acc when (k in @mysql_jsons) ->

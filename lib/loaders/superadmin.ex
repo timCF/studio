@@ -6,5 +6,9 @@ defmodule Studio.Loaders.Superadmin do
 		hash = Studio.hash(data)
 		%{data: %Studio.Proto.ResponseState{data | hash: hash}, hash: hash}
 	end
-	defp serialize_callback(%{data: data}), do: Studio.encode(data)
+	defp serialize_callback(%{data: data}) do
+		serialized = Studio.encode(data)
+		:pg2.get_members(:studio_superadmin) |> Enum.each(&(send({:new_state, serialized}, &1)))
+		serialized
+	end
 end

@@ -47,6 +47,7 @@ CREATE TABLE `rooms` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
 	`name` varchar(255) NOT NULL,
 	`location_id` bigint unsigned NOT NULL,
+	`color` varchar(255) NOT NULL,
 	`description` BLOB NOT NULL DEFAULT '',
 	`price_base` bigint unsigned NOT NULL,
 	`enabled` boolean NOT NULL,
@@ -193,8 +194,8 @@ CREATE TABLE `bands` (
 DROP TABLE IF EXISTS `sessions`;
 CREATE TABLE `sessions` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
-	`time_from` bigint unsigned NOT NULL,
-	`time_to` bigint unsigned NOT NULL,
+	`time_from` timestamp NOT NULL,
+	`time_to` timestamp NOT NULL,
 	`week_day` ENUM('WD_1','WD_2','WD_3','WD_4','WD_5','WD_6','WD_7') NOT NULL, # WITHOUT DEFAULT VALUE
 	`room_id` bigint unsigned NOT NULL,
 	`instruments_ids` varchar(1024) NOT NULL, # json list [1,2,3 ... ]
