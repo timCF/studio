@@ -26,10 +26,9 @@ defmodule Studio do
 	end
 
 	def hash(some), do: (some |> :erlang.term_to_binary |> :erlang.md5 |> Base.encode64)
-	def encode(res = %Studio.Proto.ResponseState{}) do
-		Map.to_list(res)
-		|> Enum.reduce(%{}, fn({k,v}, acc) -> Map.put(acc, k, encode_process(v)) end)
-		|> Studio.Proto.ResponseState.encode
+	def encode(res = %Studio.Proto.Response{state: state = %Studio.Proto.FullState{}}) do
+		%Studio.Proto.Response{res | state: (Map.to_list(state) |> Enum.reduce(%{}, fn({k,v}, acc) -> Map.put(acc, k, encode_process(v)) end))}
+		|> Studio.Proto.Response.encode
 	end
 
 	defp encode_process(lst) when is_list(lst) do

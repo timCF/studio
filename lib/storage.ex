@@ -81,7 +81,7 @@ defmodule Studio.Storage do
 	def fullstate do
 		%{start: tss, end: tse} = range(1, "MONTH")
 		condition = "WHERE stamp > '#{tss}' AND stamp < '#{tse}'"
-		Enum.reduce(@mysql_tabs, %Studio.Proto.ResponseState{}, fn
+		Enum.reduce(@mysql_tabs, %Studio.Proto.FullState{}, fn
 			tab, acc when (tab in @mysql_tabs_unlim) -> Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, condition) end)
 			tab, acc -> Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, "") end)
 		end)

@@ -4,7 +4,7 @@ defmodule Studio.Loaders.Superadmin do
 	defp read_callback(_) do
 		data = Studio.Storage.fullstate
 		hash = Studio.hash(data)
-		%{data: %Studio.Proto.ResponseState{data | hash: hash}, hash: hash}
+		%{data: %Studio.Proto.Response{status: :RS_ok_state, message: "", state: %Studio.Proto.FullState{data | hash: hash}}, hash: hash}
 	end
 	defp serialize_callback(%{data: data}) do
 		serialized = Studio.encode(data)
