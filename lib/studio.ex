@@ -34,7 +34,7 @@ defmodule Studio do
 	def decode(bin) when is_binary(bin) do
 		case Studio.Proto.Request.decode(bin) |> Exutils.try_catch do
 			req = %Studio.Proto.Request{} -> req
-			error -> "error on decoding req #{inspect error}"
+			error -> "error on decoding req #{inspect error} #{inspect :erlang.get_stacktrace}"
 		end
 	end
 
