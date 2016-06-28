@@ -6,6 +6,7 @@ defmodule Studio do
 	use Silverb, [
 		{"@timex_fields", Studio.Storage.timex_fields}
 	]
+	require Exutils
 
 	# See http://elixir-lang.org/docs/stable/elixir/Application.html
 	# for more information on OTP Applications
@@ -29,6 +30,12 @@ defmodule Studio do
 	def encode(res = %Studio.Proto.Response{state: state = %Studio.Proto.FullState{}}) do
 		%Studio.Proto.Response{res | state: (Map.to_list(state) |> Enum.reduce(%{}, fn({k,v}, acc) -> Map.put(acc, k, encode_process(v)) end))}
 		|> Studio.Proto.Response.encode
+	end
+	def decode(bin) when is_binary(bin) do
+		case Studio.Proto.Request.decode(bin) |> Exutils.try_catch do
+			req = %Studio.Proto.Request{} -> req
+			error -> "error on decoding req #{inspect error}"
+		end
 	end
 
 	defp encode_process(lst) when is_list(lst) do

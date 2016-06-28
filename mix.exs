@@ -23,6 +23,7 @@ defmodule Studio.Mixfile do
 						:cachex,
 						:wwwest_lite,
 						:jazz,
+						:exutils,
 					],
      mod: {Studio, []}]
   end
@@ -45,6 +46,7 @@ defmodule Studio.Mixfile do
 			{:cachex, github: "timCF/cachex"},
 			{:wwwest_lite, github: "timCF/wwwest_lite"},
 			{:jazz, github: "meh/jazz"},
+			{:exutils, github: "timCF/exutils"},
 		]
 	end
 end

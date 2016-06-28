@@ -3,7 +3,10 @@ defmodule Studio.WwwestLite do
 	require Logger
 	require WwwestLite
 	WwwestLite.callback_module do
-		def handle_wwwest_lite(req = %{}) do
+		def handle_wwwest_lite(%{post_body: pb}) do
+			case Studio.decode(pb) do
+
+			end
 			case get_pg2(req) do
 				#
 				#	TODO
