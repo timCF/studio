@@ -4,7 +4,7 @@ defmodule Studio.WwwestLite do
 	require WwwestLite
 	WwwestLite.callback_module do
 		def handle_wwwest_lite(%{post_body: pb}) do
-			case Studio.decode(pb) |> IO.inspect do
+			case Studio.decode(pb) do
 				req = %Studio.Proto.Request{} ->
 					case get_pg2(req) do
 						#
@@ -41,10 +41,13 @@ defmodule Studio.WwwestLite do
 	end
 
 	defp process_request(req = %{}) do
+		case Studio.Utils.auth(req) do
+			resp = %Studio.Proto.Response{status: :RS_error} -> Studio.encode(resp)
+			%Studio.Proto.Response{} -> Studio.Loaders.Superadmin.get_serialized
+		end
 		#
 		#	TODO long polling
 		#
-		Studio.Loaders.Superadmin.get_serialized
 	end
 
 end

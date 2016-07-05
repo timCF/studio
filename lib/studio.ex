@@ -52,4 +52,6 @@ defmodule Studio do
 	end
 	defp encode_process(some), do: some
 
+	def error(msg) when is_binary(msg), do: %Studio.Proto.Response{status: :RS_error, message: msg, state: %Studio.Proto.FullState{hash: ""}}
+
 end
