@@ -17,9 +17,9 @@ CREATE TABLE `admins` (
 	`enabled` boolean NOT NULL,
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
-	UNIQUE KEY `name` (`name`),
+	UNIQUE KEY `login` (`login`),
+	KEY `name` (`name`),
 	KEY `contacts` (`contacts`),
-	KEY `login` (`login`),
 	KEY `password` (`password`),
 	KEY `enabled` (`enabled`),
 	KEY `stamp` (`stamp`)
