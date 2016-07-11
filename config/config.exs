@@ -42,10 +42,22 @@ config :sqlx,
 						]
 			]
 
-config :wwwest_lite,
-	server_port: 9866,
-	server_timeout: 120000, # timeout for all requests
-	memo_ttl: 5000, # timeout for memorize json encode and decode
-	callback_module: Studio.WwwestLite, # here are handlers for requests
-	post_data_type: :protobuf, # | :xml | :any # it's data type of post q for decoding
-	crossdomain: true
+config :pmaker,
+	# basic_auth: %{login: "login", password: "password"}, # if needed
+	# can run multiple servers on one OTP app
+	servers: [
+		%{
+			module: "BulletAdmin", # just server name
+			app: :studio, # main app ( for loading resources etc )
+			port: 7770, # webserver port
+			kind: :bullet, # :bullet | :cowboy
+			decode: :callback, # nil | :json | :callback
+			encode: :callback, # nil | :json | :callback
+			crossdomain: true, # true | false
+			callback_module: Studio.Pmaker.Bullet.Admin, # where are callbacks functions :
+			# mandatory &handle_pmaker/1 gets %Pmaker.Request{}, returns %Pmaker.Response{}
+			# optional &decode/1 returns {:ok, term} | {:error, error}
+			# optional &encode/1
+			priv_path: "/studio_ui_admin" # path in priv dir for resource loader
+		}
+	]

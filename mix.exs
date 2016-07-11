@@ -21,7 +21,7 @@ defmodule Studio.Mixfile do
 						:exprotobuf,
 						:timex,
 						:cachex,
-						:wwwest_lite,
+						:pmaker,
 						:jazz,
 						:exutils,
 					],
@@ -44,7 +44,7 @@ defmodule Studio.Mixfile do
 			{:exprotobuf, github: "bitwalker/exprotobuf"},
 			{:timex, github: "bitwalker/timex", tag: "2.2.1"},
 			{:cachex, github: "timCF/cachex"},
-			{:wwwest_lite, github: "timCF/wwwest_lite"},
+			{:pmaker, github: "timCF/pmaker"},
 			{:jazz, github: "meh/jazz"},
 			{:exutils, github: "timCF/exutils"},
 		]
