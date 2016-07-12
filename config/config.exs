@@ -58,6 +58,6 @@ config :pmaker,
 			# mandatory &handle_pmaker/1 gets %Pmaker.Request{}, returns %Pmaker.Response{}
 			# optional &decode/1 returns {:ok, term} | {:error, error}
 			# optional &encode/1
-			priv_path: "/studio_ui_admin" # path in priv dir for resource loader
+			priv_path: "/studio_ui_admin/public" # path in priv dir for resource loader
 		}
 	]
