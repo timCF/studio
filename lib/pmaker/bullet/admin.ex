@@ -7,6 +7,9 @@ defmodule Studio.Pmaker.Bullet.Admin do
 		end
 	end
 	def encode(some), do: Studio.encode(some)
+	def handle_pmaker(%Pmaker.Request{ok: true, data: %Studio.Proto.Request{cmd: :CMD_ping}}) do
+		%Pmaker.Response{data: %Studio.Proto.Response{status: :RS_ok_void, message: "", state: %Studio.Proto.FullState{hash: ""}}}
+	end
 	def handle_pmaker(%Pmaker.Request{ok: true, data: req = %Studio.Proto.Request{}}) do
 		#
 		#	TODO !!!

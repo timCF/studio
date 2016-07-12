@@ -8,6 +8,9 @@ defmodule Studio.Loaders.Superadmin do
 	end
 	defp serialize_callback(%{data: data}) do
 		serialized = Studio.encode(data)
+		#
+		#	TODO : only call clients 2 refresh update 
+		#
 		:pg2.get_members(:studio_superadmin) |> Enum.each(&(send({:new_state, serialized}, &1)))
 		serialized
 	end
