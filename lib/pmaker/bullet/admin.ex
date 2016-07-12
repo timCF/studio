@@ -16,16 +16,13 @@ defmodule Studio.Pmaker.Bullet.Admin do
 		#
 		#	TODO !!!
 		#
-		%Pmaker.Response{
-			data: process_request(req),
-			encode: false
-		}
+		%Pmaker.Response{ data: process_request(req) }
 	end
 
 	defp process_request(req = %{}) do
 		case Studio.Utils.auth(req) do
-			resp = %Studio.Proto.Response{status: :RS_error} -> Studio.encode(resp)
-			%Studio.Proto.Response{} -> Studio.Loaders.Superadmin.get_serialized
+			resp = %Studio.Proto.Response{status: :RS_error} -> resp
+			%Studio.Proto.Response{} -> Studio.Loaders.Superadmin.get(:data)
 		end
 	end
 end
