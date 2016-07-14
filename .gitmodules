@@ -3,4 +3,4 @@
 	url = https://github.com/timCF/studio_proto.git
 [submodule "priv/studio_ui_admin"]
 	path = priv/studio_ui_admin
-	url = https://github.com/timCF/studio_proto.git
+	url = https://github.com/timCF/studio_ui_admin.git
