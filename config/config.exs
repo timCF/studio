@@ -49,7 +49,7 @@ config :pmaker,
 		%{
 			module: "BulletAdmin", # just server name
 			app: :studio, # main app ( for loading resources etc )
-			port: 7770, # webserver port
+			port: 7772, # webserver port
 			kind: :bullet, # :bullet | :cowboy
 			decode: :callback, # nil | :json | :callback
 			encode: :callback, # nil | :json | :callback
