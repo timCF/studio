@@ -11,3 +11,8 @@ defmodule Studio.Utils do
 		end
 	end
 end
+defmodule Studio.Checks.Session do
+	defstruct action: nil, # :save | :update | :error
+			message: "",
+			session_id: nil
+end

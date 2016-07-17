@@ -1,4 +1,5 @@
 defmodule Studio.Storage do
+	use Pipe
 	use Silverb, [
 		# WARNING !!! these fields always are enums, timestamps, booleans in mysql !!!
 		{"@mysql_enums", [:band_kind, :week_day, :kind, :status, :ordered_by]},
@@ -42,6 +43,7 @@ defmodule Studio.Storage do
 		Enum.reduce(data, %{}, fn
 			{k,v}, acc when (k in @mysql_enums) -> Map.put(acc, k, String.to_atom(v))
 			{k,{:datetime,v}}, acc when (k in @mysql_timestamps) -> Map.put(acc, k, Timex.DateTime.from(v))
+			{k,v}, acc when (k in @mysql_timestamps) -> Map.put(acc, k, Timex.DateTime.set(v, [timezone: Studio.timezone]))
 			# {k,v}, acc when (k in @mysql_unixtime) -> Map.put(acc, k, Timex.DateTime.from_seconds(v))
 			{k,0}, acc when (k in @mysql_booleans) -> Map.put(acc, k, false)
 			{k,1}, acc when (k in @mysql_booleans) -> Map.put(acc, k, true)
@@ -85,6 +87,53 @@ defmodule Studio.Storage do
 			tab, acc when (tab in @mysql_tabs_unlim) -> Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, condition) end)
 			tab, acc -> Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, "") end)
 		end)
+	end
+
+	# checks session can be saved / updated ... action is :save | :update | :error
+	def can_session_be_saved(session = %Studio.Proto.Session{time_from: tf, time_to: tt}) when (tf < tt) do
+		tf = Timex.DateTime.from_milliseconds(tf) |> Timex.Timezone.convert(Studio.timezone) |> Timex.format!("{ISO:Extended}")
+		tt = Timex.DateTime.from_milliseconds(tt) |> Timex.Timezone.convert(Studio.timezone) |> Timex.format!("{ISO:Extended}")
+		"""
+		SELECT id, band_id, room_id, instruments_ids FROM sessions WHERE
+			(
+				(time_from >= ? AND time_to <= ?) OR
+				(time_from >= ? AND time_from < ?) OR
+				(time_to > ? AND time_to <= ?)
+			)
+			AND status = ?;
+		"""
+		|> Sqlx.exec([tf,tt,tf,tt,tf,tt,"SS_awaiting_first"], :studio)
+		|> Enum.map(fn(el) -> Map.update!(el, :instruments_ids, &Jazz.decode!/1) end)
+		|> can_session_be_saved_process(session)
+	end
+
+	defp can_session_be_saved_process([], %Studio.Proto.Session{}), do: %Studio.Checks.Session{action: :save, message: "", session_id: nil}
+	defp can_session_be_saved_process(lst = [_|_], session = %Studio.Proto.Session{}) do
+		pipe_matching %Studio.Checks.Session{action: nil},
+			%Studio.Checks.Session{action: nil}
+			|> check_instruments_overlap(lst, session)
+			|> check_rooms_overlap(lst, session)
+	end
+
+	defp check_instruments_overlap(acc = %Studio.Checks.Session{}, lst = [_|_], %Studio.Proto.Session{band_id: bid, instruments_ids: iids}) do
+		Stream.filter(lst, fn(%{band_id: band_id}) -> (band_id != bid) end)
+		|> Enum.reduce_while(acc, fn(%{instruments_ids: instruments_ids}, acc = %Studio.Checks.Session{}) ->
+			case Enum.filter(instruments_ids, fn(id) -> Enum.member?(iids, id) end) do
+				[] -> {:cont, acc}
+				[_|_] -> {:halt, %Studio.Checks.Session{acc | action: :error, message: "выбранные инструменты уже используются в это время"}}
+			end
+		end)
+	end
+	defp check_rooms_overlap(acc = %Studio.Checks.Session{}, lst = [_|_], %Studio.Proto.Session{band_id: bid, room_id: rid}) do
+		case Enum.filter(lst, fn(%{band_id: band_id, room_id: room_id}) -> (band_id != bid) and (room_id == rid) end) do
+			[_|_] -> %Studio.Checks.Session{acc | action: :error, message: "другая группа уже репетирует в это время"}
+			[] ->
+				case Enum.filter(lst, fn(%{band_id: band_id}) -> (band_id == bid) end) do
+					[] -> %Studio.Checks.Session{acc | action: :save}
+					[%{id: id}] -> %Studio.Checks.Session{acc | action: :update, session_id: id}
+					[_|_] -> %Studio.Checks.Session{acc | action: :error, message: "данная группа уже репетирует в это время более одной сессии"}
+				end
+		end
 	end
 
 end

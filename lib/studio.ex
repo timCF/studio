@@ -15,7 +15,8 @@ defmodule Studio do
 		Enum.each([:studio_superadmin], &(:ok = :pg2.create(&1)))
 
 		children = [
-			worker(Studio.Loaders.Superadmin, [])
+			worker(Studio.Loaders.Superadmin, []),
+			worker(Studio.Worker, [])
 		# Define workers and child supervisors to be supervised
 		# worker(Studio.Worker, [arg1, arg2, arg3]),
 		]
@@ -30,7 +31,7 @@ defmodule Studio do
 	def encode(res = %Studio.Proto.Response{state: state = %Studio.Proto.FullState{}}) do
 		%Studio.Proto.Response{res | state: (Map.to_list(state) |> Enum.reduce(%{}, fn({k,v}, acc) -> Map.put(acc, k, encode_process(v)) end))}
 		|> Studio.Proto.Response.encode
-		|> Base.encode64 
+		|> Base.encode64
 	end
 	def decode(bin) when is_binary(bin) do
 		case Base.decode64!(bin) |> Studio.Proto.Request.decode |> Exutils.try_catch do
@@ -54,5 +55,8 @@ defmodule Studio do
 	defp encode_process(some), do: some
 
 	def error(msg) when is_binary(msg), do: %Studio.Proto.Response{status: :RS_error, message: msg, state: %Studio.Proto.FullState{hash: ""}}
+
+	def timezone, do: "Europe/Moscow"
+	def now, do: Timex.DateTime.now(timezone)
 
 end

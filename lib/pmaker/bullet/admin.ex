@@ -21,8 +21,8 @@ defmodule Studio.Pmaker.Bullet.Admin do
 	end
 
 	defp process_request(%Studio.Proto.Request{cmd: :CMD_get_state}, resp = %Studio.Proto.Response{}), do: resp
-	defp process_request(%Studio.Proto.Request{cmd: :CMD_new_session, subject: subject}, resp = %Studio.Proto.Response{}) do
-		IO.inspect(subject)
+	defp process_request(%Studio.Proto.Request{cmd: cmd, subject: %Studio.Proto.FullState{sessions: [session = %Studio.Proto.Session{}]}}, resp = %Studio.Proto.Response{}) when (cmd in [:CMD_new_session, :CMD_edit_session]) do
+		Studio.Worker.session_new_edit(session, cmd)
 		#
 		#	TODO
 		#

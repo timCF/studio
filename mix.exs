@@ -24,6 +24,7 @@ defmodule Studio.Mixfile do
 						:pmaker,
 						:jazz,
 						:exutils,
+						:pipe,
 					],
      mod: {Studio, []}]
   end
@@ -47,6 +48,7 @@ defmodule Studio.Mixfile do
 			{:pmaker, github: "timCF/pmaker"},
 			{:jazz, github: "meh/jazz"},
 			{:exutils, github: "timCF/exutils"},
+			{:pipe, github: "batate/elixir-pipes"},
 		]
 	end
 end
