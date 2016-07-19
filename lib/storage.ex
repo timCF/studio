@@ -100,9 +100,9 @@ defmodule Studio.Storage do
 				(time_from >= ? AND time_from < ?) OR
 				(time_to > ? AND time_to <= ?)
 			)
-			AND status = ?;
+			AND status IN (?);
 		"""
-		|> Sqlx.exec([tf,tt,tf,tt,tf,tt,"SS_awaiting_first"], :studio)
+		|> Sqlx.exec([tf,tt,tf,tt,tf,tt,["SS_awaiting_first","SS_closed_ok"]], :studio)
 		|> Enum.map(fn(el) -> Map.update!(el, :instruments_ids, &Jazz.decode!/1) end)
 		|> can_session_be_saved_process(session)
 	end
