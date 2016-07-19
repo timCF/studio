@@ -11,12 +11,13 @@ defmodule Studio.Worker do
 	definfo :timeout, state: state = %Studio.Worker{} do
 		{:noreply, maybe_auto(Studio.now, state), @ttl}
 	end
-	defcall session_new_edit(session = %Studio.Proto.Session{}, _), state: state = %Studio.Worker{} do
-		%Studio.Checks.Session{} = Studio.Storage.can_session_be_saved(session) |> IO.inspect
-		#
-		#	TODO
-		#
-		{:reply, :ok, maybe_auto(Studio.now, state), @ttl}
+	defcall session_new_edit(session = %Studio.Proto.Session{}, _, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{} do
+		{
+			:reply,
+			(Studio.Storage.can_session_be_saved(session) |> process_users_session(session, resp)),
+			maybe_auto(Studio.now, state),
+			@ttl
+		}
 	end
 
 	defp maybe_auto(current, state = %Studio.Worker{autostamp: nil}) do
@@ -37,6 +38,22 @@ defmodule Studio.Worker do
 		#
 		#	TODO
 		#
+	end
+
+	defp process_users_session(%Studio.Checks.Session{action: :error, message: message}, %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) do
+		%Studio.Proto.Response{resp | status: :RS_error, message: message}
+	end
+	defp process_users_session(%Studio.Checks.Session{action: :save}, session = %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) do
+		case Studio.Storage.save_session(session) do
+			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "репетиция сохранена"}
+			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при сохранении репетиции, запишите её и обратитесь к разработчику #{inspect error}"}
+		end
+	end
+	defp process_users_session(%Studio.Checks.Session{action: :update, session_id: sid}, session = %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) when is_integer(sid) do
+		case %Studio.Proto.Session{session | id: sid} |> Studio.Storage.update_session do
+			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "репетиция обновлена"}
+			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при обновлении репетиции, запишите её и обратитесь к разработчику #{inspect error}"}
+		end
 	end
 
 end

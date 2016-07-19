@@ -37,6 +37,7 @@ defmodule Studio.Storage do
 			"bands",
 			"sessions",
 			]},
+		{"@end_status", ["SS_closed_auto","SS_closed_ok","SS_canceled_hard"]}, # if alreaty was payment
 	]
 
 	defp transform_values(data = %{}) do
@@ -94,7 +95,7 @@ defmodule Studio.Storage do
 		tf = Timex.DateTime.from_milliseconds(tf) |> Timex.Timezone.convert(Studio.timezone) |> Timex.format!("{ISO:Extended}")
 		tt = Timex.DateTime.from_milliseconds(tt) |> Timex.Timezone.convert(Studio.timezone) |> Timex.format!("{ISO:Extended}")
 		"""
-		SELECT id, band_id, room_id, instruments_ids FROM sessions WHERE
+		SELECT id, band_id, room_id, instruments_ids, status FROM sessions WHERE
 			(
 				(time_from >= ? AND time_to <= ?) OR
 				(time_from >= ? AND time_from < ?) OR
@@ -130,10 +131,27 @@ defmodule Studio.Storage do
 			[] ->
 				case Enum.filter(lst, fn(%{band_id: band_id}) -> (band_id == bid) end) do
 					[] -> %Studio.Checks.Session{acc | action: :save}
+					[%{status: status}] when (status in @end_status) -> %Studio.Checks.Session{acc | action: :error, message: "репетиция в это время уже закрыта"}
 					[%{id: id}] -> %Studio.Checks.Session{acc | action: :update, session_id: id}
 					[_|_] -> %Studio.Checks.Session{acc | action: :error, message: "данная группа уже репетирует в это время более одной сессии"}
 				end
 		end
+	end
+
+	def save_session(session) do
+		#
+		#	TODO
+		#
+		IO.inspect(session)
+		:ok
+	end
+
+	def update_session(session) do
+		#
+		#	TODO
+		#
+		IO.inspect(session)
+		:ok
 	end
 
 end
