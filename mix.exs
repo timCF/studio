@@ -25,6 +25,7 @@ defmodule Studio.Mixfile do
 						:jazz,
 						:exutils,
 						:pipe,
+						:maybe,
 					],
      mod: {Studio, []}]
   end
@@ -49,6 +50,7 @@ defmodule Studio.Mixfile do
 			{:jazz, github: "meh/jazz"},
 			{:exutils, github: "timCF/exutils"},
 			{:pipe, github: "batate/elixir-pipes"},
+			{:maybe, github: "timCF/maybe"},
 		]
 	end
 end

@@ -57,6 +57,20 @@ defmodule Studio.Storage do
 		end)
 	end
 
+	defp untransform_values(data = %{}) do
+		Map.from_struct(data)
+		|> Enum.reduce(data, %{}, fn
+			{k,v}, acc when (k in @mysql_enums) -> Map.put(acc, k, Maybe.maybe_to_string(v))
+			{k,v}, acc when is_integer(v) and (k in @mysql_timestamps) -> Map.put(acc, k, (Timex.DateTime.from_milliseconds(v) |> Timex.Timezone.convert(Studio.timezone) |> Timex.format!("{ISO:Extended}")))
+			# {k,v}, acc when (k in @mysql_unixtime) -> Map.put(acc, k, Timex.DateTime.from_seconds(v))
+			# {k,0}, acc when (k in @mysql_booleans) -> Map.put(acc, k, false)
+			# {k,1}, acc when (k in @mysql_booleans) -> Map.put(acc, k, true)
+			{k,v}, acc when is_list(v) and (k in @mysql_jsons) -> Map.put(acc, k, Jazz.encode!(v))
+			{k,v}, acc when is_map(v) and (k in @mysql_jsons) -> Map.put(acc, k, Jazz.encode!( Map.from_struct(v) ))
+			{k,v}, acc -> Map.put(acc, k, v)
+		end)
+	end
+
 	defp unmarshal_struct(data = %{}, tab) do
 		acc = Map.get(@mysql_structs, tab)
 		true = ((acc |> Map.from_struct |> Map.keys |> Enum.sort) == (data |> Map.keys |> Enum.sort))
@@ -142,7 +156,7 @@ defmodule Studio.Storage do
 		#
 		#	TODO
 		#
-		IO.inspect(session)
+		IO.inspect(untransform_values session)
 		:ok
 	end
 
@@ -150,7 +164,7 @@ defmodule Studio.Storage do
 		#
 		#	TODO
 		#
-		IO.inspect(session)
+		IO.inspect(untransform_values session)
 		:ok
 	end
 
