@@ -59,7 +59,7 @@ defmodule Studio.Storage do
 
 	defp untransform_values(data = %{}) do
 		Map.from_struct(data)
-		|> Enum.reduce(data, %{}, fn
+		|> Enum.reduce(%{}, fn
 			{k,v}, acc when (k in @mysql_enums) -> Map.put(acc, k, Maybe.maybe_to_string(v))
 			{k,v}, acc when is_integer(v) and (k in @mysql_timestamps) -> Map.put(acc, k, (Timex.DateTime.from_milliseconds(v) |> Timex.Timezone.convert(Studio.timezone) |> Timex.format!("{ISO:Extended}")))
 			# {k,v}, acc when (k in @mysql_unixtime) -> Map.put(acc, k, Timex.DateTime.from_seconds(v))
@@ -152,20 +152,23 @@ defmodule Studio.Storage do
 		end
 	end
 
-	def save_session(session) do
-		#
-		#	TODO
-		#
-		IO.inspect(untransform_values session)
-		:ok
+	def save_session(session = %Studio.Proto.Session{}) do
+		session = untransform_values(session) |> Map.delete(:id) |> Map.delete(:stamp)
+		keys = Map.keys(session)
+		case	"INSERT INTO sessions (#{ Enum.join(keys, ",") }) VALUES (?);"
+				|> Sqlx.exec([ Enum.map(keys, &(Map.get(session,&1))) ], :studio) do
+			%{error: []} -> :ok
+			error -> {:error, error}
+		end
 	end
 
-	def update_session(session) do
-		#
-		#	TODO
-		#
-		IO.inspect(untransform_values session)
-		:ok
+	def update_session(session = %Studio.Proto.Session{id: id}) when is_integer(id) do
+		session = untransform_values(session) |> Map.delete(:stamp)
+		keys = Map.keys(session)
+		case Sqlx.insert_duplicate([session], keys, [id], "sessions", :studio) do
+			%{error: []} -> :ok
+			error -> {:error, error}
+		end
 	end
 
 end
