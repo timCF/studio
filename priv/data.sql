@@ -121,7 +121,7 @@ VALUES
 INSERT INTO `bands`
 ( `name`, `person`, `contacts`, `kind`, `balance`, `admin_id`, `can_order`, `enabled` )
 VALUES
-( 'Тэйсит Фьюри', 'Пельмень', '{"phones":[],"mails":[],"social":[],"other":[]}', 'BK_base', 6000, 2, 1, 1 );
+( 'Тэйсит Фьюри', 'Пельмень', '{"phones":["+79266293872"],"mails":[],"social":["https://vk.com/german_fury","https://vk.com/enoth"],"other":[]}', 'BK_base', 6000, 2, 1, 1 );
 
 
 
