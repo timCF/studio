@@ -171,4 +171,33 @@ defmodule Studio.Storage do
 		end
 	end
 
+	def can_band_be_saved(%Studio.Proto.Band{id: id, name: name, person: person, contacts: %Studio.Proto.Contacts{phones: [_|_]}}) do
+		case is_integer(id) and (id > 0) do
+			true -> true
+			false ->
+				case "SELECT id FROM bands WHERE name = ? AND person = ?;" |> Sqlx.exec([name, person], :studio) do
+					[] -> true
+					[_|_] -> "группа с именем '#{name}' и контактным лицом '#{person}' уже существует"
+				end
+		end
+	end
+
+	def band_new(data = %Studio.Proto.Band{}) do
+		data = untransform_values(data) |> Map.delete(:id) |> Map.delete(:stamp)
+		keys = Map.keys(data)
+		case	"INSERT INTO bands (#{ Enum.join(keys, ",") }) VALUES (?);"
+				|> Sqlx.exec([ Enum.map(keys, &(Map.get(data,&1))) ], :studio) do
+			%{error: []} -> :ok
+			error -> {:error, error}
+		end
+	end
+	def band_update(data = %Studio.Proto.Band{}) do
+		data = %{id: id} = untransform_values(data) |> Map.delete(:stamp)
+		keys = Map.keys(data)
+		case Sqlx.insert_duplicate([data], keys, [id], "bands", :studio) do
+			%{error: []} -> :ok
+			error -> {:error, error}
+		end
+	end
+
 end

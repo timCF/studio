@@ -19,6 +19,14 @@ defmodule Studio.Worker do
 			@ttl
 		}
 	end
+	defcall band_new_edit(band = %Studio.Proto.Band{}, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{} do
+		{
+			:reply,
+			(Studio.Storage.can_band_be_saved(band) |> process_band_new_edit(band, resp)),
+			maybe_auto(Studio.now, state),
+			@ttl
+		}
+	end
 
 	defp maybe_auto(current, state = %Studio.Worker{autostamp: nil}) do
 		_ = autoupdate()
@@ -54,6 +62,22 @@ defmodule Studio.Worker do
 			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "репетиция обновлена"}
 			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при обновлении репетиции, запишите её и обратитесь к разработчику #{inspect error}"}
 		end
+	end
+
+	defp process_band_new_edit(true, band = %Studio.Proto.Band{id: id}, resp = %Studio.Proto.Response{}) when is_integer(id) and (id > 0) do
+		case Studio.Storage.band_update(band) do
+			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "группа обновлена"}
+			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при обновлении группы, запишите её и обратитесь к разработчику #{inspect error}"}
+		end
+	end
+	defp process_band_new_edit(true, band = %Studio.Proto.Band{}, resp = %Studio.Proto.Response{}) do
+		case Studio.Storage.band_new(band) do
+			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "группа сохранена"}
+			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при сохранении группы, запишите её и обратитесь к разработчику #{inspect error}"}
+		end
+	end
+	defp process_band_new_edit(bin, %Studio.Proto.Band{}, resp = %Studio.Proto.Response{}) when is_binary(bin) do
+		%Studio.Proto.Response{resp | status: :RS_error, message: bin}
 	end
 
 end
