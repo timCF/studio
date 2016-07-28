@@ -122,6 +122,12 @@ defmodule Studio.Storage do
 		|> can_session_be_saved_process(session)
 	end
 
+	#
+	#	these functions are generic for sessions and session_templates
+	#
+	#
+	#	TODO
+	#
 	defp can_session_be_saved_process([], %Studio.Proto.Session{}), do: %Studio.Checks.Session{action: :save, message: "", session_id: nil}
 	defp can_session_be_saved_process(lst = [_|_], session = %Studio.Proto.Session{}) do
 		pipe_matching %Studio.Checks.Session{action: nil},
@@ -129,7 +135,6 @@ defmodule Studio.Storage do
 			|> check_instruments_overlap(lst, session)
 			|> check_rooms_overlap(lst, session)
 	end
-
 	defp check_instruments_overlap(acc = %Studio.Checks.Session{}, lst = [_|_], %Studio.Proto.Session{band_id: bid, instruments_ids: iids}) do
 		Stream.filter(lst, fn(%{band_id: band_id}) -> (band_id != bid) end)
 		|> Enum.reduce_while(acc, fn(%{instruments_ids: instruments_ids}, acc = %Studio.Checks.Session{}) ->
@@ -151,6 +156,9 @@ defmodule Studio.Storage do
 				end
 		end
 	end
+	#
+	#	these functions are generic for sessions and session_templates
+	#
 
 	def save_session(session = %Studio.Proto.Session{}) do
 		session = untransform_values(session) |> Map.delete(:id) |> Map.delete(:stamp)
@@ -198,6 +206,26 @@ defmodule Studio.Storage do
 			%{error: []} -> :ok
 			error -> {:error, error}
 		end
+	end
+
+	defmacrop non_neg_integer(some) do
+		quote location: :keep do
+			(is_integer(unquote(some)) and (unquote(some) >= 0))
+		end
+	end
+
+	def can_session_template_be_saved(data = %Studio.Proto.SessionTemplate{min_from: mf, min_to: mt}) when (non_neg_integer(mf) and non_neg_integer(mt) and (mt > mf)) do
+		"""
+		SELECT id, band_id, room_id, instruments_ids FROM sessions_template WHERE
+			(
+				(min_from >= ? AND min_to <= ?) OR
+				(min_from >= ? AND min_from < ?) OR
+				(min_to > ? AND min_to <= ?)
+			);
+		"""
+		|> Sqlx.exec([mf,mt,mf,mt,mf,mt], :studio)
+		|> Enum.map(fn(el) -> Map.update!(el, :instruments_ids, &Jazz.decode!/1) end)
+		|> can_session_be_saved_process(session)
 	end
 
 end

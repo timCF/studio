@@ -27,6 +27,14 @@ defmodule Studio.Worker do
 			@ttl
 		}
 	end
+	defcall session_template_new_edit(data = %Studio.Proto.SessionTemplate{}, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{} do
+		{
+			:reply,
+			(Studio.Storage.can_session_template_be_saved(data) |> process_session_template_new_edit(data, resp)),
+			maybe_auto(Studio.now, state),
+			@ttl
+		}
+	end
 
 	defp maybe_auto(current, state = %Studio.Worker{autostamp: nil}) do
 		_ = autoupdate()

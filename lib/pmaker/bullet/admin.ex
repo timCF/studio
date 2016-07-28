@@ -27,5 +27,8 @@ defmodule Studio.Pmaker.Bullet.Admin do
 	defp process_request(%Studio.Proto.Request{cmd: :CMD_band_new_edit, subject: %Studio.Proto.FullState{bands: [band = %Studio.Proto.Band{}]}}, resp = %Studio.Proto.Response{}) do
 		Studio.Worker.band_new_edit(band, resp)
 	end
+	defp process_request(%Studio.Proto.Request{cmd: :CMD_week_template_new_edit, subject: %Studio.Proto.FullState{sessions_template: [data = %Studio.Proto.SessionTemplate{}]}}, resp = %Studio.Proto.Response{}) do
+		Studio.Worker.session_template_new_edit(data, resp)
+	end
 
 end
