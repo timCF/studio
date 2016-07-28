@@ -35,6 +35,14 @@ defmodule Studio.Worker do
 			@ttl
 		}
 	end
+	defcall delete_from_table(id, table, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{} do
+		{
+			:reply,
+			Studio.Storage.delete_from_table(id, table,resp),
+			maybe_auto(Studio.now, state),
+			@ttl
+		}
+	end
 
 	defp maybe_auto(current, state = %Studio.Worker{autostamp: nil}) do
 		_ = autoupdate()

@@ -245,4 +245,11 @@ defmodule Studio.Storage do
 		end
 	end
 
+	def delete_from_table(id, table, resp = %Studio.Proto.Response{}) when (non_neg_integer(id) and is_binary(table)) do
+		case "DELETE FROM #{table} WHERE id = ?;" |> Sqlx.exec([id], :studio) do
+			%{error: []} -> %Studio.Proto.Response{resp | status: :RS_notice, message: "запись из таблицы #{table} удалена"}
+			error -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при удалении записи из таблицы #{table}, запишите её и обратитесь к разработчику #{inspect error}"}
+		end
+	end
+
 end

@@ -30,5 +30,8 @@ defmodule Studio.Pmaker.Bullet.Admin do
 	defp process_request(%Studio.Proto.Request{cmd: :CMD_week_template_new_edit, subject: %Studio.Proto.FullState{sessions_template: [data = %Studio.Proto.SessionTemplate{}]}}, resp = %Studio.Proto.Response{}) do
 		Studio.Worker.session_template_new_edit(data, resp)
 	end
+	defp process_request(%Studio.Proto.Request{cmd: :CMD_week_template_disable, subject: %Studio.Proto.FullState{sessions_template: [%Studio.Proto.SessionTemplate{id: id}]}}, resp = %Studio.Proto.Response{}) when is_integer(id) do
+		Studio.Worker.delete_from_table(id, "sessions_template", resp)
+	end
 
 end
