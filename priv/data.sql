@@ -95,11 +95,11 @@ VALUES
 
 
 INSERT INTO `instruments`
-( `name`, `location_id`, `price` )
+( `name`, `location_id`, `price` , `enabled`)
 VALUES
-( 'Fender Stratocaster', 1, 100 ),
-( 'Schecter Bass', 1, 100 ),
-( 'Samick Anne Rose', 2, 100 );
+( 'Fender Stratocaster', 1, 100, 1),
+( 'Schecter Bass', 1, 100, 1),
+( 'Samick Anne Rose', 2, 100, 1);
 
 
 
