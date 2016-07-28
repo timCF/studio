@@ -26,6 +26,7 @@ defmodule Studio.Mixfile do
 						:exutils,
 						:pipe,
 						:maybe,
+						:relx,
 					],
      mod: {Studio, []}]
   end
@@ -51,6 +52,7 @@ defmodule Studio.Mixfile do
 			{:exutils, github: "timCF/exutils"},
 			{:pipe, github: "batate/elixir-pipes"},
 			{:maybe, github: "timCF/maybe"},
+			{:relx, github: "erlware/relx", tag: "v3.20.0", override: true},
 		]
 	end
 end
