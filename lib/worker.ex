@@ -88,4 +88,20 @@ defmodule Studio.Worker do
 		%Studio.Proto.Response{resp | status: :RS_error, message: bin}
 	end
 
+	defp process_session_template_new_edit(%Studio.Checks.Session{action: :error, message: message}, %Studio.Proto.SessionTemplate{}, resp = %Studio.Proto.Response{}) do
+		%Studio.Proto.Response{resp | status: :RS_error, message: message}
+	end
+	defp process_session_template_new_edit(%Studio.Checks.Session{action: :save}, data = %Studio.Proto.SessionTemplate{}, resp = %Studio.Proto.Response{}) do
+		case Studio.Storage.generic_data_new(data, "sessions_template") do
+			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "постоянная репетиция сохранена"}
+			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при сохранении, запишите её и обратитесь к разработчику #{inspect error}"}
+		end
+	end
+	defp process_session_template_new_edit(%Studio.Checks.Session{action: :update, session_id: sid}, data = %Studio.Proto.SessionTemplate{}, resp = %Studio.Proto.Response{}) when is_integer(sid) do
+		case %Studio.Proto.SessionTemplate{data | id: sid} |> Studio.Storage.generic_data_update("sessions_template") do
+			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "постоянная репетиция обновлена"}
+			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при обновлении, запишите её и обратитесь к разработчику #{inspect error}"}
+		end
+	end
+
 end

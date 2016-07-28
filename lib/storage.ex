@@ -38,6 +38,7 @@ defmodule Studio.Storage do
 			"sessions",
 			]},
 		{"@end_status", ["SS_closed_auto","SS_closed_ok","SS_canceled_hard"]}, # if alreaty was payment
+		{"@allowed_session_structs", [Studio.Proto.Session, Studio.Proto.SessionTemplate]},
 	]
 
 	defp transform_values(data = %{}) do
@@ -125,17 +126,14 @@ defmodule Studio.Storage do
 	#
 	#	these functions are generic for sessions and session_templates
 	#
-	#
-	#	TODO
-	#
-	defp can_session_be_saved_process([], %Studio.Proto.Session{}), do: %Studio.Checks.Session{action: :save, message: "", session_id: nil}
-	defp can_session_be_saved_process(lst = [_|_], session = %Studio.Proto.Session{}) do
+	defp can_session_be_saved_process([], %{:__struct__ => struct}) when (struct in @allowed_session_structs), do: %Studio.Checks.Session{action: :save, message: "", session_id: nil}
+	defp can_session_be_saved_process(lst = [_|_], session = %{:__struct__ => struct}) when (struct in @allowed_session_structs) do
 		pipe_matching %Studio.Checks.Session{action: nil},
 			%Studio.Checks.Session{action: nil}
 			|> check_instruments_overlap(lst, session)
 			|> check_rooms_overlap(lst, session)
 	end
-	defp check_instruments_overlap(acc = %Studio.Checks.Session{}, lst = [_|_], %Studio.Proto.Session{band_id: bid, instruments_ids: iids}) do
+	defp check_instruments_overlap(acc = %Studio.Checks.Session{}, lst = [_|_], %{:__struct__ => struct, band_id: bid, instruments_ids: iids}) when (struct in @allowed_session_structs) do
 		Stream.filter(lst, fn(%{band_id: band_id}) -> (band_id != bid) end)
 		|> Enum.reduce_while(acc, fn(%{instruments_ids: instruments_ids}, acc = %Studio.Checks.Session{}) ->
 			case Enum.filter(instruments_ids, fn(id) -> Enum.member?(iids, id) end) do
@@ -144,7 +142,7 @@ defmodule Studio.Storage do
 			end
 		end)
 	end
-	defp check_rooms_overlap(acc = %Studio.Checks.Session{}, lst = [_|_], %Studio.Proto.Session{band_id: bid, room_id: rid}) do
+	defp check_rooms_overlap(acc = %Studio.Checks.Session{}, lst = [_|_], %{:__struct__ => struct, band_id: bid, room_id: rid}) when (struct in @allowed_session_structs) do
 		case Enum.filter(lst, fn(%{band_id: band_id, room_id: room_id}) -> (band_id != bid) and (room_id == rid) end) do
 			[_|_] -> %Studio.Checks.Session{acc | action: :error, message: "другая группа уже репетирует в это время"}
 			[] ->
@@ -214,18 +212,37 @@ defmodule Studio.Storage do
 		end
 	end
 
-	def can_session_template_be_saved(data = %Studio.Proto.SessionTemplate{min_from: mf, min_to: mt}) when (non_neg_integer(mf) and non_neg_integer(mt) and (mt > mf)) do
+	def can_session_template_be_saved(data = %Studio.Proto.SessionTemplate{min_from: mf, min_to: mt, week_day: wd}) when (non_neg_integer(mf) and non_neg_integer(mt) and (mt > mf)) do
 		"""
 		SELECT id, band_id, room_id, instruments_ids FROM sessions_template WHERE
 			(
 				(min_from >= ? AND min_to <= ?) OR
 				(min_from >= ? AND min_from < ?) OR
 				(min_to > ? AND min_to <= ?)
-			);
+			)
+			AND week_day = ?;
 		"""
-		|> Sqlx.exec([mf,mt,mf,mt,mf,mt], :studio)
+		|> Sqlx.exec([mf,mt,mf,mt,mf,mt,Atom.to_string(wd)], :studio)
 		|> Enum.map(fn(el) -> Map.update!(el, :instruments_ids, &Jazz.decode!/1) end)
-		|> can_session_be_saved_process(session)
+		|> can_session_be_saved_process(data)
+	end
+
+	def generic_data_new(data = %{}, table) when is_binary(table) do
+		data = untransform_values(data) |> Map.delete(:id) |> Map.delete(:stamp)
+		keys = Map.keys(data)
+		case	"INSERT INTO #{table} (#{ Enum.join(keys, ",") }) VALUES (?);"
+				|> Sqlx.exec([ Enum.map(keys, &(Map.get(data,&1))) ], :studio) do
+			%{error: []} -> :ok
+			error -> {:error, error}
+		end
+	end
+	def generic_data_update(data = %{}, table) when is_binary(table) do
+		data = %{id: id} = untransform_values(data) |> Map.delete(:stamp)
+		keys = Map.keys(data)
+		case Sqlx.insert_duplicate([data], keys, [id], table, :studio) do
+			%{error: []} -> :ok
+			error -> {:error, error}
+		end
 	end
 
 end
