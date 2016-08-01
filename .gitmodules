@@ -4,3 +4,6 @@
 [submodule "priv/studio_ui_admin"]
 	path = priv/studio_ui_admin
 	url = https://github.com/timCF/studio_ui_admin.git
+[submodule "priv/studio_ui_observer"]
+	path = priv/studio_ui_observer
+	url = https://github.com/timCF/studio_ui_observer.git

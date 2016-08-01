@@ -5,3 +5,4 @@ rebuild:
 	git submodule update
 	mix deps.get && mix compile
 	cd ./priv/studio_ui_admin && make rebuild
+	cd ./priv/studio_ui_observer && make rebuild

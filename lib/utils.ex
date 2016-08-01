@@ -10,6 +10,12 @@ defmodule Studio.Utils do
 				end
 		end
 	end
+	def auth(%Studio.Proto.Request{client_kind: :CK_observer}) do
+		case Studio.Loaders.Superadmin.get(:data) do
+			nil -> Studio.error("данные не найдены, возможно проблемы на сервере")
+			resp = %Studio.Proto.Response{state: fullstate = %Studio.Proto.FullState{}} -> %Studio.Proto.Response{resp | status: :RS_ok_state, message: "", state: %Studio.Proto.FullState{fullstate | admins: []} |> enabled_only}
+		end
+	end
 	defp enabled_only(state = %Studio.Proto.FullState{}) do
 		Map.from_struct(state)
 		|> Map.keys

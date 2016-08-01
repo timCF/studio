@@ -59,5 +59,19 @@ config :pmaker,
 			# optional &decode/1 returns {:ok, term} | {:error, error}
 			# optional &encode/1
 			priv_path: "/studio_ui_admin/public" # path in priv dir for resource loader
+		},
+		%{
+			module: "BulletObserver", # just server name
+			app: :studio, # main app ( for loading resources etc )
+			port: 7773, # webserver port
+			kind: :bullet, # :bullet | :cowboy
+			decode: :callback, # nil | :json | :callback
+			encode: :callback, # nil | :json | :callback
+			crossdomain: true, # true | false
+			callback_module: Studio.Pmaker.Bullet.Observer, # where are callbacks functions :
+			# mandatory &handle_pmaker/1 gets %Pmaker.Request{}, returns %Pmaker.Response{}
+			# optional &decode/1 returns {:ok, term} | {:error, error}
+			# optional &encode/1
+			priv_path: "/studio_ui_observer/public" # path in priv dir for resource loader
 		}
 	]
