@@ -1,6 +1,7 @@
 defmodule Studio.Loaders.Superadmin do
 	use Silverb, [
-		{"@refresh_message", (%Studio.Proto.Response{status: :RS_refresh, message: "", state: %Studio.Proto.FullState{hash: ""}} |> Studio.encode)}
+		{"@refresh_message", (%Studio.Proto.Response{status: :RS_refresh, message: "", state: %Studio.Proto.FullState{hash: ""}} |> Studio.encode)},
+		{"@server_names", (Application.get_env(:pmaker, :servers) |> Enum.map(fn(%{module: module}) -> module end))}
 	]
 	use Cachex, [ttl: 1000, export: true, serialize_on_init: false]
 	defp read_callback(_) do
@@ -9,11 +10,8 @@ defmodule Studio.Loaders.Superadmin do
 		%{data: %Studio.Proto.Response{status: :RS_ok_state, message: "", state: %Studio.Proto.FullState{data | hash: hash}}, hash: hash}
 	end
 	defp serialize_callback(%{}) do
-		%Pmaker.Response{
-			data: @refresh_message,
-			encode: false
-		}
-		|> Pmaker.send2all("BulletAdmin")
+		data = %Pmaker.Response{data: @refresh_message, encode: false}
+		Enum.each(@server_names, &(Pmaker.send2all(data, &1)))
 		""
 	end
 end
