@@ -36,10 +36,7 @@ Enum.each([Studio.Pmaker.Bullet.Admin, Studio.Pmaker.Bullet.Observer], fn(module
 			Studio.Worker.session_template_new_edit(data, resp)
 		end
 		defp process_request(%Studio.Proto.Request{cmd: :CMD_week_template_new_edit_from_session, subject: %Studio.Proto.FullState{sessions_template: [data = %Studio.Proto.SessionTemplate{}]}}, resp = %Studio.Proto.Response{}) do
-			case Studio.Worker.session_template_new_edit(data, resp) do
-				resp = %Studio.Proto.Response{status: :RS_notice} -> %Studio.Proto.Response{resp | status: :RS_info}
-				resp = %Studio.Proto.Response{} -> resp
-			end
+			Studio.Worker.session_template_new_edit(data, resp)
 		end
 		defp process_request(%Studio.Proto.Request{cmd: :CMD_week_template_disable, subject: %Studio.Proto.FullState{sessions_template: [%Studio.Proto.SessionTemplate{id: id}]}}, resp = %Studio.Proto.Response{}) when is_integer(id) do
 			Studio.Worker.delete_from_table(id, "sessions_template", resp)
