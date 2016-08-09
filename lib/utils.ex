@@ -36,8 +36,8 @@ defmodule Studio.Utils do
 		end)
 	end
 	def future_dates_seq(wd) do
-		now = Timex.DateTime.today
-		Stream.map(0..30, &(Timex.shift(now, [days: &1])))
+		now = Timex.DateTime.today( Studio.timezone )
+		Stream.map(0..60, &(Timex.shift(now, [days: &1])))
 		|> Enum.filter(&(wd == Studio.Utils.date2wd(&1)))
 	end
 	def session_from_template(%Studio.Proto.SessionTemplate{min_from: min_from, min_to: min_to, week_day: wd, room_id: room_id, instruments_ids: instruments_ids, band_id: band_id, description: description}, date) do
@@ -55,6 +55,7 @@ defmodule Studio.Utils do
 			ordered_by: :SO_auto,
 			admin_id_open: 0,
 			admin_id_close: 0,
+			transaction_id: 0
 		}
 	end
 end

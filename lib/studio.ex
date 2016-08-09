@@ -59,4 +59,11 @@ defmodule Studio do
 	def timezone, do: "Europe/Moscow"
 	def now, do: Timex.DateTime.now(timezone)
 
+	def ts2mysql(ts) when is_integer(ts) do
+		ts
+		|> Timex.DateTime.from_milliseconds
+		|> Timex.Timezone.convert(timezone)
+		|> Timex.format!("{ISO:Extended}")
+	end
+
 end

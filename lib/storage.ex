@@ -97,7 +97,7 @@ defmodule Studio.Storage do
 	end
 
 	def fullstate do
-		%{start: tss, end: tse} = range(1, "MONTH")
+		%{start: tss, end: tse} = range(3, "MONTH")
 		condition = "WHERE stamp > '#{tss}' AND stamp < '#{tse}'"
 		Enum.reduce(@mysql_tabs, %Studio.Proto.FullState{}, fn
 			tab, acc when (tab in @mysql_tabs_unlim) -> Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, condition) end)
@@ -107,8 +107,8 @@ defmodule Studio.Storage do
 
 	# checks session can be saved / updated ... action is :save | :update | :error
 	def can_session_be_saved(session = %Studio.Proto.Session{time_from: tf, time_to: tt}) when (tf < tt) do
-		tf = Timex.DateTime.from_milliseconds(tf) |> Timex.Timezone.convert(Studio.timezone) |> Timex.format!("{ISO:Extended}")
-		tt = Timex.DateTime.from_milliseconds(tt) |> Timex.Timezone.convert(Studio.timezone) |> Timex.format!("{ISO:Extended}")
+		tf = Studio.ts2mysql(tf)
+		tt = Studio.ts2mysql(tt)
 		"""
 		SELECT id, band_id, room_id, instruments_ids, status FROM sessions WHERE
 			(
@@ -276,7 +276,7 @@ defmodule Studio.Storage do
 				status = ? AND
 				ordered_by = ?;
 			"""
-			|> Sqlx.exec([tf, tt, Atom.to_string(wd), room_id, Jazz.encode!(instruments_ids), band_id, Atom.to_string(status), Atom.to_string(ob)], :studio)
+			|> Sqlx.exec([Studio.ts2mysql(tf), Studio.ts2mysql(tt), Atom.to_string(wd), room_id, Jazz.encode!(instruments_ids), band_id, Atom.to_string(status), Atom.to_string(ob)], :studio)
 		end)
 	end
 
