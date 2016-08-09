@@ -1,5 +1,6 @@
 # use only one worker to prevent collisions
 defmodule Studio.Worker do
+	require Logger
 	use Silverb, [
 		{"@ttl", 5000}
 	]
@@ -36,6 +37,7 @@ defmodule Studio.Worker do
 		}
 	end
 	defcall delete_from_table(id, table, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{} do
+		_ = if (table == "sessions_template"), do: rm_future_auto_sessions(id)
 		{
 			:reply,
 			Studio.Storage.delete_from_table(id, table,resp),
@@ -59,9 +61,26 @@ defmodule Studio.Worker do
 	end
 
 	defp autoupdate do
-		#
-		#	TODO
-		#
+		case Studio.Loaders.Superadmin.get(:data) do
+			nil -> :ok
+			%Studio.Proto.Response{state: state = %Studio.Proto.FullState{}} ->
+				%Studio.Proto.FullState{sessions_template: lst} = Studio.Utils.enabled_only(state)
+				Enum.each(lst, fn(templ = %Studio.Proto.SessionTemplate{week_day: wd}) ->
+					Studio.Utils.future_dates_seq(wd)
+					|> Enum.each(fn(date) ->
+						session = Studio.Utils.session_from_template(templ, date)
+						case Studio.Storage.can_session_be_saved(session) do
+							check = %Studio.Checks.Session{action: :save} ->
+								case process_users_session(check, session, %Studio.Proto.Response{}) do
+									%Studio.Proto.Response{status: :RS_error, message: message} -> Logger.error("ERROR on autoupdate #{message}")
+									%Studio.Proto.Response{} -> :ok
+								end
+							%Studio.Checks.Session{} ->
+								:ok
+						end
+					end)
+				end)
+		end
 	end
 
 	defp process_users_session(%Studio.Checks.Session{action: :error, message: message}, %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) do
@@ -110,6 +129,12 @@ defmodule Studio.Worker do
 			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "постоянная репетиция обновлена"}
 			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при обновлении, запишите её и обратитесь к разработчику #{inspect error}"}
 		end
+	end
+
+	defp rm_future_auto_sessions(id) do
+		%Studio.Proto.Response{state: %Studio.Proto.FullState{sessions_template: lst}} = Studio.Loaders.Superadmin.get(:data)
+		[st = %Studio.Proto.SessionTemplate{id: ^id}] = Enum.filter(lst, fn(%Studio.Proto.SessionTemplate{id: this_id}) -> this_id == id end)
+		:ok = Studio.Storage.delete_auto_sessions_like_this(st)
 	end
 
 end

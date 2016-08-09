@@ -252,4 +252,32 @@ defmodule Studio.Storage do
 		end
 	end
 
+	def delete_auto_sessions_like_this(templ = %Studio.Proto.SessionTemplate{week_day: wd}) do
+		Studio.Utils.future_dates_seq(wd)
+		|> Enum.each(fn(date) ->
+			%Studio.Proto.Session{
+				time_from: tf,
+				time_to: tt,
+				week_day: ^wd,
+				room_id: room_id,
+				instruments_ids: instruments_ids,
+				band_id: band_id,
+				status: status = :SS_awaiting_first,
+				ordered_by: ob = :SO_auto
+			} = Studio.Utils.session_from_template(templ, date)
+			%{error: []} = """
+			DELETE FROM sessions WHERE
+				time_from = ? AND
+				time_to = ? AND
+				week_day = ? AND
+				room_id = ? AND
+				instruments_ids = ? AND
+				band_id = ? AND
+				status = ? AND
+				ordered_by = ?;
+			"""
+			|> Sqlx.exec([tf, tt, Atom.to_string(wd), room_id, Jazz.encode!(instruments_ids), band_id, Atom.to_string(status), Atom.to_string(ob)], :studio)
+		end)
+	end
+
 end

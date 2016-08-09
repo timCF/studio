@@ -181,4 +181,5 @@ VALUES
 INSERT INTO `sessions_template`
 ( `min_from`, `min_to`, `week_day`, `room_id`, `instruments_ids`, `band_id`, `description`, `admin_id`, `enabled` )
 VALUES
-( 1080, 1260, 'WD_3', 1, '[1,2]', 1, '', 2, 1 );
+( 1080, 1260, 'WD_3', 1, '[1,2]', 1, '', 2, 1 ),
+( 1260, 1440, 'WD_7', 1, '[1,2]', 1, '', 2, 1 );
