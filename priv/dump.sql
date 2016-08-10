@@ -65,7 +65,7 @@ DROP TABLE IF EXISTS `discount_const`;
 CREATE TABLE `discount_const` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
 	`room_id` bigint unsigned NOT NULL, # IF 0 - DEFAULT FOR ALL ROOMS ( !!! if room not exist in this tab !!! )
-	`band_kind` ENUM('BK_default','BK_base','BK_cover','BK_education') NOT NULL,
+	`band_kind` ENUM('BK_base','BK_cover','BK_education') NOT NULL,
 	`number_from` int unsigned NOT NULL, # number of sessions for 32 days >= 0
 	`min_from` int unsigned NOT NULL, # minutes from day begin
 	`week_day` ENUM('WD_default','WD_1','WD_2','WD_3','WD_4','WD_5','WD_6','WD_7') NOT NULL,

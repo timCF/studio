@@ -63,7 +63,6 @@ defmodule Studio.Worker do
 	defp autoupdate do
 		data = Studio.Loaders.Superadmin.get(:data)
 		_ = auto_handle_sessions_template(data)
-		_ = auto_derive_prices(data)
 	end
 
 	defp auto_handle_sessions_template(nil), do: :ok
@@ -84,13 +83,6 @@ defmodule Studio.Worker do
 				end
 			end)
 		end)
-	end
-
-	defp auto_derive_prices(nil), do: :ok
-	defp auto_derive_prices(%Studio.Proto.Response{state: %Studio.Proto.FullState{}}) do
-		#
-		#	TODO
-		#
 	end
 
 	defp process_users_session(%Studio.Checks.Session{action: :error, message: message}, %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) do

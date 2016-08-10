@@ -122,6 +122,7 @@ defmodule Studio.Storage do
 		|> Enum.map(fn(el) -> Map.update!(el, :instruments_ids, &Jazz.decode!/1) end)
 		|> can_session_be_saved_process(session)
 	end
+	def can_session_be_saved(%Studio.Proto.Session{}), do: %Studio.Checks.Session{action: :error, message: "введены неверные данные"}
 
 	#
 	#	these functions are generic for sessions and session_templates
@@ -226,6 +227,7 @@ defmodule Studio.Storage do
 		|> Enum.map(fn(el) -> Map.update!(el, :instruments_ids, &Jazz.decode!/1) end)
 		|> can_session_be_saved_process(data)
 	end
+	def can_session_template_be_saved(%Studio.Proto.SessionTemplate{}), do: %Studio.Checks.Session{action: :error, message: "введены неверные данные"}
 
 	def generic_data_new(data = %{}, table) when is_binary(table) do
 		data = untransform_values(data) |> Map.delete(:id) |> Map.delete(:stamp)
@@ -272,6 +274,23 @@ defmodule Studio.Storage do
 			"""
 			|> Sqlx.exec([Atom.to_string(wd), room_id, band_id, Atom.to_string(status), Atom.to_string(ob)], :studio)
 		end)
+	end
+
+	def maybe_update_session_amount(%Studio.Proto.Session{id: id, week_day: wd, room_id: room_id, instruments_ids: instruments_ids, band_id: band_id, status: status, amount: amount, ordered_by: ob, transaction_id: transaction_id}) do
+		%{error: []} = """
+		UPDATE sessions
+		SET amount = ?
+		WHERE
+			id = ? AND
+			week_day = ? AND
+			room_id = ? AND
+			instruments_ids = ? AND
+			band_id = ? AND
+			status = ? AND
+			ordered_by = ? AND
+			transaction_id = ?;
+		"""
+		|> Sqlx.exec([amount, id, Atom.to_string(wd), room_id, Jazz.encode!(instruments_ids), band_id, Atom.to_string(status), Atom.to_string(ob), transaction_id], :studio)
 	end
 
 end

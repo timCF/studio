@@ -4,7 +4,7 @@ INSERT INTO `admins`
 ( `name`, `contacts`, `login`, `password`, `enabled` )
 VALUES
 ( 'root', '{"phones":[],"mails":[],"social":[],"other":[]}', 'root', 'f9bb5c75-d7b3-4a6e-bc11-b419e3a45fdd', 1 ),
-( 'Саша Минаев', '{"phones":["+79257904809"],"mails":[],"social":["https://vk.com/snowhitebeats"],"other":[]}', 'snowhitebeats', 'salmon', 1 );
+( 'Саша Минаев', '{"phones":["89257904809"],"mails":[],"social":["https://vk.com/snowhitebeats"],"other":[]}', 'snowhitebeats', 'salmon', 1 );
 
 
 
@@ -121,7 +121,7 @@ VALUES
 INSERT INTO `bands`
 ( `name`, `person`, `contacts`, `kind`, `balance`, `admin_id`, `can_order`, `enabled` )
 VALUES
-( 'Тэйсит Фьюри', 'Пельмень', '{"phones":["+79266293872"],"mails":[],"social":["https://vk.com/german_fury","https://vk.com/enoth"],"other":[]}', 'BK_base', 6000, 2, 1, 1 );
+( 'Тэйсит Фьюри', 'Пельмень', '{"phones":["89266293872"],"mails":[],"social":["https://vk.com/german_fury","https://vk.com/enoth"],"other":[]}', 'BK_base', 6000, 2, 1, 1 );
 
 
 
