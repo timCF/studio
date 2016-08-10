@@ -61,26 +61,36 @@ defmodule Studio.Worker do
 	end
 
 	defp autoupdate do
-		case Studio.Loaders.Superadmin.get(:data) do
-			nil -> :ok
-			%Studio.Proto.Response{state: state = %Studio.Proto.FullState{}} ->
-				%Studio.Proto.FullState{sessions_template: lst} = Studio.Utils.enabled_only(state)
-				Enum.each(lst, fn(templ = %Studio.Proto.SessionTemplate{week_day: wd}) ->
-					Studio.Utils.future_dates_seq(wd)
-					|> Enum.each(fn(date) ->
-						session = Studio.Utils.session_from_template(templ, date)
-						case Studio.Storage.can_session_be_saved(session) do
-							check = %Studio.Checks.Session{action: :save} ->
-								case process_users_session(check, session, %Studio.Proto.Response{}) do
-									%Studio.Proto.Response{status: :RS_error, message: message} -> Logger.error("ERROR on autoupdate #{message}")
-									%Studio.Proto.Response{} -> :ok
-								end
-							%Studio.Checks.Session{} ->
-								:ok
+		data = Studio.Loaders.Superadmin.get(:data)
+		_ = auto_handle_sessions_template(data)
+		_ = auto_derive_prices(data)
+	end
+
+	defp auto_handle_sessions_template(nil), do: :ok
+	defp auto_handle_sessions_template(%Studio.Proto.Response{state: state = %Studio.Proto.FullState{}}) do
+		%Studio.Proto.FullState{sessions_template: lst} = Studio.Utils.enabled_only(state)
+		Enum.each(lst, fn(templ = %Studio.Proto.SessionTemplate{week_day: wd}) ->
+			Studio.Utils.future_dates_seq(wd)
+			|> Enum.each(fn(date) ->
+				session = Studio.Utils.session_from_template(templ, date)
+				case Studio.Storage.can_session_be_saved(session) do
+					check = %Studio.Checks.Session{action: :save} ->
+						case process_users_session(check, session, %Studio.Proto.Response{}) do
+							%Studio.Proto.Response{status: :RS_error, message: message} -> Logger.error("ERROR on autoupdate #{message}")
+							%Studio.Proto.Response{} -> :ok
 						end
-					end)
-				end)
-		end
+					%Studio.Checks.Session{} ->
+						:ok
+				end
+			end)
+		end)
+	end
+
+	defp auto_derive_prices(nil), do: :ok
+	defp auto_derive_prices(%Studio.Proto.Response{state: %Studio.Proto.FullState{}}) do
+		#
+		#	TODO
+		#
 	end
 
 	defp process_users_session(%Studio.Checks.Session{action: :error, message: message}, %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) do

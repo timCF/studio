@@ -218,7 +218,7 @@ CREATE TABLE `sessions` (
 	KEY `band_id` (`band_id`),
 	KEY `callback` (`callback`),
 	KEY `status` (`status`),
-	UNIQUE KEY `full` (`time_from`, `time_to`, `week_day`, `room_id`, `band_id`),
+	UNIQUE KEY `full` (`time_from`, `time_to`, `week_day`, `room_id`, `band_id`, `status`),
 	KEY `amount` (`amount`),
 	KEY `ordered_by` (`ordered_by`),
 	KEY `admin_id_open` (`admin_id_open`),
