@@ -18,6 +18,9 @@ defmodule Studio.Updater do
 			sess = %Studio.Proto.Session{status: status} when (status in [:SS_awaiting_last, :SS_awaiting_first]) ->
 				%Studio.Proto.Session{sess | amount: Studio.Utils.derive_session_price(sess, state)}
 				|> Studio.Storage.maybe_update_session_amount
+				#
+				#	TODO : update amount in worker thread
+				#
 			%Studio.Proto.Session{} ->
 				:ok
 		end)

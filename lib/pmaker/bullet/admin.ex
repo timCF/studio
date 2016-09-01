@@ -1,6 +1,7 @@
 Enum.each([Studio.Pmaker.Bullet.Admin, Studio.Pmaker.Bullet.Observer], fn(module) ->
 
 	defmodule module do
+		require Logger
 		use Silverb, [
 			{"@ping_message", (%Studio.Proto.Response{status: :RS_ok_void, message: "", state: %Studio.Proto.FullState{hash: ""}} |> Studio.encode)}
 		]
@@ -12,16 +13,23 @@ Enum.each([Studio.Pmaker.Bullet.Admin, Studio.Pmaker.Bullet.Observer], fn(module
 			end
 		end
 		def encode(some), do: Studio.encode(some)
-		def handle_pmaker(%Pmaker.Request{ok: true, data: %Studio.Proto.Request{cmd: :CMD_ping}}) do
+		def handle_pmaker(req = %Pmaker.Request{}) do
+			#Logger.info("REQUEST #{inspect req}")
+			resp = handle_pmaker_proc(req)
+			#Logger.info("RESPONSE #{inspect resp}")
+			resp
+		end
+
+		defp handle_pmaker_proc(%Pmaker.Request{ok: true, data: %Studio.Proto.Request{cmd: :CMD_ping}}) do
 			%Pmaker.Response{data: @ping_message, encode: false}
 		end
-		def handle_pmaker(%Pmaker.Request{ok: true, data: req = %Studio.Proto.Request{client_kind: :CK_admin}}) do
+		defp handle_pmaker_proc(%Pmaker.Request{ok: true, data: req = %Studio.Proto.Request{client_kind: :CK_admin}}) do
 			case Studio.Utils.auth(req) do
 				resp = %Studio.Proto.Response{status: :RS_error} -> %Pmaker.Response{data: resp}
 				resp = %Studio.Proto.Response{} -> %Pmaker.Response{data: process_request(req, resp)}
 			end
 		end
-		def handle_pmaker(%Pmaker.Request{ok: true, data: req = %Studio.Proto.Request{client_kind: :CK_observer}}) do
+		defp handle_pmaker_proc(%Pmaker.Request{ok: true, data: req = %Studio.Proto.Request{client_kind: :CK_observer}}) do
 			%Pmaker.Response{data: Studio.Utils.auth(req)}
 		end
 

@@ -169,10 +169,24 @@ defmodule Studio.Storage do
 		end
 	end
 
-	def update_session(session = %Studio.Proto.Session{id: id}) when is_integer(id) do
-		session = untransform_values(session) |> Map.delete(:stamp)
+	def update_session(raw_session = %Studio.Proto.Session{id: id}) when is_integer(id) do
+		session = untransform_values(raw_session) |> Map.delete(:stamp)
 		keys = Map.keys(session)
 		case Sqlx.insert_duplicate([session], keys, [id], "sessions", :studio) do
+			%{error: []} -> update_session_apply_balance(raw_session)
+			error -> {:error, error}
+		end
+	end
+
+	defp update_session_apply_balance(sess = %Studio.Proto.Session{status: status, amount: amount, band_id: band_id}) do
+		%Studio.Proto.Response{state: this_fullstate = %Studio.Proto.FullState{}} = Studio.Loaders.Superadmin.get(:data)
+		derived_price = Enum.reduce([:time_from, :time_to], sess, fn(k, acc = %Studio.Proto.Session{}) ->
+											Map.update!(acc, k, &(&1 |> Timex.DateTime.from_milliseconds |> Timex.Timezone.convert(Studio.timezone)))
+										end)
+										|> Studio.Utils.derive_session_price(this_fullstate)
+										|> abs
+		result_diff = (case status do ; :SS_canceled_hard -> derived_price ; _ -> (derived_price - abs(amount)) ; end)
+		case "UPDATE bands SET balance = (balance - (?)) WHERE id = ?;" |> Sqlx.exec([result_diff, band_id], :studio) do
 			%{error: []} -> :ok
 			error -> {:error, error}
 		end
