@@ -16,11 +16,8 @@ defmodule Studio.Updater do
 	defp auto_derive_prices(%Studio.Proto.Response{state: state = %Studio.Proto.FullState{sessions: sessions}}) do
 		Enum.each(sessions, fn
 			sess = %Studio.Proto.Session{status: status} when (status in [:SS_awaiting_last, :SS_awaiting_first]) ->
-				%Studio.Proto.Session{sess | amount: Studio.Utils.derive_session_price(sess, state)}
-				|> Studio.Storage.maybe_update_session_amount
-				#
-				#	TODO : update amount in worker thread
-				#
+				new_sess = %Studio.Proto.Session{sess | amount: Studio.Utils.derive_session_price(sess, state)}
+				_ = Studio.Worker.do_work(fn() -> Studio.Storage.maybe_update_session_amount(new_sess) end)
 			%Studio.Proto.Session{} ->
 				:ok
 		end)

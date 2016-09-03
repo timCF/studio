@@ -2,7 +2,8 @@
 defmodule Studio.Worker do
 	require Logger
 	use Silverb, [
-		{"@ttl", 5000}
+		{"@ttl", 5000},
+		{"@callt", 120000},
 	]
 	use ExActor.GenServer, export: :studio_worker
 	defstruct autostamp: nil
@@ -12,7 +13,7 @@ defmodule Studio.Worker do
 	definfo :timeout, state: state = %Studio.Worker{} do
 		{:noreply, maybe_auto(Studio.now, state), @ttl}
 	end
-	defcall session_new_edit(session = %Studio.Proto.Session{}, _, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{} do
+	defcall session_new_edit(session = %Studio.Proto.Session{}, _, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{}, timeout: @callt do
 		{
 			:reply,
 			(Studio.Storage.can_session_be_saved(session) |> process_users_session(session, resp)),
@@ -20,7 +21,7 @@ defmodule Studio.Worker do
 			@ttl
 		}
 	end
-	defcall band_new_edit(band = %Studio.Proto.Band{}, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{} do
+	defcall band_new_edit(band = %Studio.Proto.Band{}, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{}, timeout: @callt do
 		{
 			:reply,
 			(Studio.Storage.can_band_be_saved(band) |> process_band_new_edit(band, resp)),
@@ -28,7 +29,7 @@ defmodule Studio.Worker do
 			@ttl
 		}
 	end
-	defcall session_template_new_edit(data = %Studio.Proto.SessionTemplate{}, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{} do
+	defcall session_template_new_edit(data = %Studio.Proto.SessionTemplate{}, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{}, timeout: @callt do
 		{
 			:reply,
 			(Studio.Storage.can_session_template_be_saved(data) |> process_session_template_new_edit(data, resp)),
@@ -36,11 +37,19 @@ defmodule Studio.Worker do
 			@ttl
 		}
 	end
-	defcall delete_from_table(id, table, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{} do
+	defcall delete_from_table(id, table, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{}, timeout: @callt do
 		_ = if (table == "sessions_template"), do: rm_future_auto_sessions(id)
 		{
 			:reply,
 			Studio.Storage.delete_from_table(id, table,resp),
+			maybe_auto(Studio.now, state),
+			@ttl
+		}
+	end
+	defcall do_work(lambda), state: state = %Studio.Worker{}, timeout: @callt do
+		{
+			:reply,
+			lambda.(),
 			maybe_auto(Studio.now, state),
 			@ttl
 		}
