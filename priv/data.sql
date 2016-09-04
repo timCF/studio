@@ -63,17 +63,13 @@ VALUES
 
 # cover
 
-#
-# TODO check cover groups prices on weekend
-#
-
 ( 4, 'BK_cover', 0, 0, "WD_default", 800, 1 ),
-( 4, 'BK_cover', 0, 1080, "WD_default", 0, 1 ),
+( 4, 'BK_cover', 0, 1080, "WD_default", 0, 0 ),
 ( 4, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
 ( 4, 'BK_cover', 0, 0, "WD_7", 0, 0 ),
 
 ( 5, 'BK_cover', 0, 0, "WD_default", 800, 1 ),
-( 5, 'BK_cover', 0, 1080, "WD_default", 0, 1 ),
+( 5, 'BK_cover', 0, 1080, "WD_default", 0, 0 ),
 ( 5, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
 ( 5, 'BK_cover', 0, 0, "WD_7", 0, 0 ),
 
@@ -85,9 +81,6 @@ VALUES
 # education
 
 ( 0, 'BK_education', 0, 0, "WD_default", 450, 1 ),
-( 0, 'BK_education', 0, 1080, "WD_default", 0, 0 ),
-( 0, 'BK_education', 0, 1080, "WD_6", 0, 0 ),
-( 0, 'BK_education', 0, 1080, "WD_7", 0, 0 ),
 
 #
 # indie
@@ -110,15 +103,10 @@ VALUES
 
 ( 8, 'BK_cover', 0, 0, "WD_default", 600, 1 ),
 ( 8, 'BK_cover', 0, 1020, "WD_default", 0, 0 ),
-( 8, 'BK_cover', 0, 1020, "WD_6", 0, 0 ),
-( 8, 'BK_cover', 0, 1020, "WD_7", 0, 0 ),
+( 8, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
+( 8, 'BK_cover', 0, 0, "WD_7", 0, 0 ),
 
-( 8, 'BK_education', 0, 0, "WD_default", 450, 1 ),
-( 8, 'BK_education', 0, 1020, "WD_default", 0, 0 ),
-( 8, 'BK_education', 0, 1020, "WD_6", 0, 0 ),
-( 8, 'BK_education', 0, 1020, "WD_7", 0, 0 );
-
-
+( 8, 'BK_education', 0, 0, "WD_default", 450, 1 );
 
 INSERT INTO `instruments`
 ( `name`, `location_id`, `price` , `enabled`)
