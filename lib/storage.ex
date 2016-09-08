@@ -178,7 +178,7 @@ defmodule Studio.Storage do
 		end
 	end
 
-	defp update_session_apply_balance(sess = %Studio.Proto.Session{status: status, amount: amount, band_id: band_id}) do
+	defp update_session_apply_balance(sess = %Studio.Proto.Session{status: status, amount: amount, band_id: band_id}) when (status in [:SS_canceled_hard, :SS_closed_ok]) do
 		%Studio.Proto.Response{state: this_fullstate = %Studio.Proto.FullState{}} = Studio.Loaders.Superadmin.get(:data)
 		derived_price = Enum.reduce([:time_from, :time_to], sess, fn(k, acc = %Studio.Proto.Session{}) ->
 											Map.update!(acc, k, &(&1 |> Timex.DateTime.from_milliseconds |> Timex.Timezone.convert(Studio.timezone)))
@@ -191,15 +191,13 @@ defmodule Studio.Storage do
 			error -> {:error, error}
 		end
 	end
+	defp update_session_apply_balance(%Studio.Proto.Session{}), do: :ok
 
 	def can_band_be_saved(%Studio.Proto.Band{id: id, name: name, person: person, contacts: %Studio.Proto.Contacts{phones: [_|_]}}) do
-		case is_integer(id) and (id > 0) do
-			true -> true
-			false ->
-				case "SELECT id FROM bands WHERE name = ? AND person = ?;" |> Sqlx.exec([name, person], :studio) do
-					[] -> true
-					[_|_] -> "группа с именем '#{name}' и контактным лицом '#{person}' уже существует"
-				end
+		case "SELECT id FROM bands WHERE name = ? AND person = ?;" |> Sqlx.exec([name, person], :studio) do
+			[] -> true
+			[%{id: ^id}] when is_integer(id) and (id > 0) -> true
+			[_|_] -> "группа с именем '#{name}' и контактным лицом '#{person}' уже существует"
 		end
 	end
 
