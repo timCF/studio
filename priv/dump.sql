@@ -202,7 +202,8 @@ CREATE TABLE `sessions` (
 	`band_id` bigint unsigned NOT NULL,
 	`callback` boolean NOT NULL, # if not acceptable now for order, admin can call back later
 	`status` ENUM('SS_awaiting_last','SS_awaiting_first','SS_closed_auto','SS_closed_ok','SS_canceled_soft','SS_canceled_hard') NOT NULL,
-	`amount` bigint unsigned NOT NULL, # result amount
+	`amount` bigint unsigned NOT NULL, # cash in
+	`price` bigint unsigned NOT NULL,
 	`description` BLOB NOT NULL DEFAULT '',
 	`ordered_by` ENUM('SO_auto','SO_admin','SO_self') NOT NULL,
 	`admin_id_open` bigint unsigned NOT NULL,
@@ -220,6 +221,7 @@ CREATE TABLE `sessions` (
 	KEY `status` (`status`),
 	UNIQUE KEY `full` (`time_from`, `time_to`, `week_day`, `room_id`, `band_id`, `status`),
 	KEY `amount` (`amount`),
+	KEY `price` (`price`),
 	KEY `ordered_by` (`ordered_by`),
 	KEY `admin_id_open` (`admin_id_open`),
 	KEY `admin_id_close` (`admin_id_close`),

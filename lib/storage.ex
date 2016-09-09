@@ -178,14 +178,8 @@ defmodule Studio.Storage do
 		end
 	end
 
-	defp update_session_apply_balance(sess = %Studio.Proto.Session{status: status, amount: amount, band_id: band_id}) when (status in [:SS_canceled_hard, :SS_closed_ok]) do
-		%Studio.Proto.Response{state: this_fullstate = %Studio.Proto.FullState{}} = Studio.Loaders.Superadmin.get(:data)
-		derived_price = Enum.reduce([:time_from, :time_to], sess, fn(k, acc = %Studio.Proto.Session{}) ->
-											Map.update!(acc, k, &(&1 |> Timex.DateTime.from_milliseconds |> Timex.Timezone.convert(Studio.timezone)))
-										end)
-										|> Studio.Utils.derive_session_price(this_fullstate)
-										|> abs
-		result_diff = (case status do ; :SS_canceled_hard -> derived_price ; _ -> (derived_price - abs(amount)) ; end)
+	defp update_session_apply_balance(%Studio.Proto.Session{status: status, amount: amount, price: price, band_id: band_id}) when (status in [:SS_canceled_hard, :SS_closed_ok]) do
+		result_diff = (case status do ; :SS_canceled_hard -> abs(price) ; _ -> (abs(price) - abs(amount)) ; end)
 		case "UPDATE bands SET balance = (balance - (?)) WHERE id = ?;" |> Sqlx.exec([result_diff, band_id], :studio) do
 			%{error: []} -> :ok
 			error -> {:error, error}
@@ -288,10 +282,12 @@ defmodule Studio.Storage do
 		end)
 	end
 
-	def maybe_update_session_amount(%Studio.Proto.Session{id: id, week_day: wd, room_id: room_id, instruments_ids: instruments_ids, band_id: band_id, status: status, amount: amount, ordered_by: ob, transaction_id: transaction_id}) do
+	def maybe_update_session_amount(%Studio.Proto.Session{id: id, week_day: wd, room_id: room_id, instruments_ids: instruments_ids, band_id: band_id, status: status, amount: amount, price: price, ordered_by: ob, transaction_id: transaction_id}) do
 		%{error: []} = """
 		UPDATE sessions
-		SET amount = ?
+		SET
+			amount = ?,
+			price = ?
 		WHERE
 			id = ? AND
 			week_day = ? AND
@@ -302,7 +298,7 @@ defmodule Studio.Storage do
 			ordered_by = ? AND
 			transaction_id = ?;
 		"""
-		|> Sqlx.exec([amount, id, Atom.to_string(wd), room_id, Jazz.encode!(instruments_ids), band_id, Atom.to_string(status), Atom.to_string(ob), transaction_id], :studio)
+		|> Sqlx.exec([amount, price, id, Atom.to_string(wd), room_id, Jazz.encode!(instruments_ids), band_id, Atom.to_string(status), Atom.to_string(ob), transaction_id], :studio)
 	end
 
 end

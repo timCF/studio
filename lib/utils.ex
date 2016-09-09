@@ -51,6 +51,7 @@ defmodule Studio.Utils do
 			callback: false,
 			status: :SS_awaiting_first,
 			amount: 0,
+			price: 0,
 			description: description,
 			ordered_by: :SO_auto,
 			admin_id_open: 0,
