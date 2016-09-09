@@ -83,9 +83,14 @@ defmodule Studio.Worker do
 				session = Studio.Utils.session_from_template(templ, date)
 				case Studio.Storage.can_session_be_saved(session) do
 					check = %Studio.Checks.Session{action: :save} ->
-						case process_users_session(check, session, %Studio.Proto.Response{}) do
-							%Studio.Proto.Response{status: :RS_error, message: message} -> Logger.error("ERROR on autoupdate #{message}")
-							%Studio.Proto.Response{} -> :ok
+						case Studio.Storage.can_session_be_saved_auto(session) do
+							false ->
+								:ok
+							true ->
+								case process_users_session(check, session, %Studio.Proto.Response{}) do
+									%Studio.Proto.Response{status: :RS_error, message: message} -> Logger.error("ERROR on autoupdate #{message}")
+									%Studio.Proto.Response{} -> :ok
+								end
 						end
 					%Studio.Checks.Session{} ->
 						:ok
