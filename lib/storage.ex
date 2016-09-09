@@ -1,5 +1,6 @@
 defmodule Studio.Storage do
 	use Pipe
+	require Logger
 	use Silverb, [
 		# WARNING !!! these fields always are enums, timestamps, booleans in mysql !!!
 		{"@mysql_enums", [:band_kind, :week_day, :kind, :status, :ordered_by]},
@@ -123,6 +124,28 @@ defmodule Studio.Storage do
 		|> can_session_be_saved_process(session)
 	end
 	def can_session_be_saved(%Studio.Proto.Session{}), do: %Studio.Checks.Session{action: :error, message: "введены неверные данные"}
+
+	def can_session_be_saved_auto(%Studio.Proto.Session{time_from: tf, time_to: tt, band_id: band_id}) when (tf < tt) do
+		tf = Studio.ts2mysql(tf)
+		tt = Studio.ts2mysql(tt)
+		case	"""
+					SELECT id FROM sessions WHERE
+						(
+							(time_from >= ? AND time_to <= ?) OR
+							(time_from >= ? AND time_from < ?) OR
+							(time_to > ? AND time_to <= ?)
+						)
+						AND band_id = ?;
+					"""
+					|> Sqlx.exec([tf,tt,tf,tt,tf,tt,band_id], :studio) do
+				[] -> true
+				_ -> false
+		end
+	end
+	def can_session_be_saved_auto(some) do
+		Logger.error("can_session_be_saved_auto wrong data #{inspect some}")
+		false
+	end
 
 	#
 	#	these functions are generic for sessions and session_templates
