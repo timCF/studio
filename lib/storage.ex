@@ -324,11 +324,36 @@ defmodule Studio.Storage do
 		|> Sqlx.exec([amount, price, id, Atom.to_string(wd), room_id, Jazz.encode!(instruments_ids), band_id, Atom.to_string(status), Atom.to_string(ob), transaction_id], :studio)
 	end
 
-	def statistics(%Studio.Proto.StatisticsRequest{}) do
-		#
-		#	TODO
-		#
-		%Studio.Proto.Statistics{cash_prices: 0, cash_input: 0, sessions_all: 0, sessions_opened: 0, sessions_closed: 0, sessions_cancel_soft: 0, sessions_cancel_hard: 0}
+	def statistics(sr = %Studio.Proto.StatisticsRequest{time_from: time_from, time_to: time_to}) do
+		"""
+		SELECT
+			amount, price, status FROM sessions
+		WHERE
+			time_from >= ? AND
+			time_to <= ?
+			#{make_location_pred(sr)};
+		"""
+		|> Sqlx.exec([Studio.ts2mysql(time_from), Studio.ts2mysql(time_to)], :studio)
+		|> Enum.reduce(%Studio.Proto.Statistics{cash_prices: 0, cash_input: 0, sessions_all: 0, sessions_opened: 0, sessions_closed: 0, sessions_cancel_soft: 0, sessions_cancel_hard: 0}, fn
+			%{status: "SS_awaiting_first"}, acc = %Studio.Proto.Statistics{sessions_all: sa, sessions_opened: so} ->
+				%Studio.Proto.Statistics{acc | sessions_all: sa + 1, sessions_opened: so + 1}
+			%{status: "SS_closed_ok", price: price, amount: amount}, acc = %Studio.Proto.Statistics{sessions_all: sa, sessions_closed: sc, cash_prices: cash_prices, cash_input: cash_input} ->
+				%Studio.Proto.Statistics{acc | sessions_all: sa + 1, sessions_closed: sc + 1, cash_prices: cash_prices + price, cash_input: cash_input + amount}
+			%{status: "SS_canceled_soft"}, acc = %Studio.Proto.Statistics{sessions_all: sa, sessions_cancel_soft: sc} ->
+				%Studio.Proto.Statistics{acc | sessions_all: sa + 1, sessions_cancel_soft: sc + 1}
+			%{status: "SS_canceled_hard", price: price}, acc = %Studio.Proto.Statistics{sessions_all: sa, sessions_cancel_hard: sc, cash_prices: cash_prices} ->
+				%Studio.Proto.Statistics{acc | sessions_all: sa + 1, sessions_cancel_hard: sc + 1, cash_prices: cash_prices + price}
+			some = %{}, acc = %Studio.Proto.Statistics{sessions_all: sa} ->
+				Logger.error("unexpected statistics element #{inspect some}")
+				%Studio.Proto.Statistics{acc | sessions_all: sa + 1}
+		end)
 	end
+
+	defp make_location_pred(%Studio.Proto.StatisticsRequest{room_id: room_id}) when is_integer(room_id), do: "AND room_id = #{Integer.to_string(room_id)}"
+	defp make_location_pred(%Studio.Proto.StatisticsRequest{location_id: location_id}) when is_integer(location_id) do
+		%Studio.Proto.Response{state: %Studio.Proto.FullState{rooms: rooms = [_|_]}} = Studio.Loaders.Superadmin.get(:data)
+		"AND room_id IN (#{ Stream.filter_map(rooms, fn(%Studio.Proto.Room{location_id: id}) -> id == location_id end, fn(%Studio.Proto.Room{id: id}) -> Integer.to_string(id) end) |> Enum.join(",") })"
+	end
+	defp make_location_pred(%Studio.Proto.StatisticsRequest{}), do: ""
 
 end
