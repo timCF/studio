@@ -324,4 +324,11 @@ defmodule Studio.Storage do
 		|> Sqlx.exec([amount, price, id, Atom.to_string(wd), room_id, Jazz.encode!(instruments_ids), band_id, Atom.to_string(status), Atom.to_string(ob), transaction_id], :studio)
 	end
 
+	def statistics(%Studio.Proto.StatisticsRequest{}) do
+		#
+		#	TODO
+		#
+		%Studio.Proto.Statistics{cash_prices: 0, cash_input: 0, sessions_all: 0, sessions_opened: 0, sessions_closed: 0, sessions_cancel_soft: 0, sessions_cancel_hard: 0}
+	end
+
 end
