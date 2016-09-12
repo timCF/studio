@@ -8,9 +8,13 @@ defmodule Studio.Utils do
 		case Studio.Loaders.Superadmin.get(:data) do
 			nil -> Studio.error("данные не найдены, возможно проблемы на сервере")
 			resp = %Studio.Proto.Response{state: fullstate = %Studio.Proto.FullState{admins: admins}} when is_list(admins) ->
-				case Enum.filter(admins, (fn ; %Studio.Proto.Admin{login: ^login, password: ^password, enabled: true} -> true ; %Studio.Proto.Admin{} -> false ; end)) do
-					admins = [%Studio.Proto.Admin{login: ^login, password: ^password, enabled: true}] -> %Studio.Proto.Response{resp | status: :RS_ok_state, message: "", state: %Studio.Proto.FullState{fullstate | admins: admins} |> enabled_only}
-					[] -> Studio.error("пользователь не авторизован")
+				case Enum.group_by(admins, (fn ; %Studio.Proto.Admin{login: ^login, password: ^password, enabled: true} -> true ; %Studio.Proto.Admin{} -> false ; end)) do
+					%{true => adt = [%Studio.Proto.Admin{login: ^login, password: ^password, enabled: true}], false => adf} ->
+						%Studio.Proto.Response{resp | status: :RS_ok_state,
+																					message: "",
+																					state: %Studio.Proto.FullState{fullstate | admins: (adt ++ Enum.map(adf, fn(el = %Studio.Proto.Admin{}) -> %Studio.Proto.Admin{el | login: "", password: ""} end))} |> enabled_only}
+					%{} ->
+						Studio.error("пользователь не авторизован")
 				end
 		end
 	end
@@ -54,8 +58,8 @@ defmodule Studio.Utils do
 			price: 0,
 			description: description,
 			ordered_by: :SO_auto,
-			admin_id_open: 0,
-			admin_id_close: 0,
+			admin_id_open: 1,
+			admin_id_close: 1,
 			transaction_id: 0
 		}
 	end
