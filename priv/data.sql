@@ -294,3 +294,6 @@ INSERT INTO `sessions_template`
 VALUES
 ( 1080, 1260, 'WD_3', 1, '[1,2]', 1, '', 2, 1 ),
 ( 1260, 1440, 'WD_7', 1, '[1,2]', 1, '', 2, 1 );
+
+UPDATE sessions SET admin_id_open = 1 WHERE admin_id_open = 0;
+UPDATE sessions SET admin_id_close = 1 WHERE admin_id_close = 0;
