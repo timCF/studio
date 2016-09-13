@@ -21,9 +21,21 @@ defmodule Studio.Utils do
 	def auth(%Studio.Proto.Request{client_kind: :CK_observer}) do
 		case Studio.Loaders.Superadmin.get(:data) do
 			nil -> Studio.error("данные не найдены, возможно проблемы на сервере")
-			resp = %Studio.Proto.Response{state: fullstate = %Studio.Proto.FullState{}} -> %Studio.Proto.Response{resp | status: :RS_ok_state, message: "", state: %Studio.Proto.FullState{fullstate | admins: []} |> enabled_only}
+			resp = %Studio.Proto.Response{state: fullstate = %Studio.Proto.FullState{}} -> %Studio.Proto.Response{resp | status: :RS_ok_state, message: "", state: fullstate |> observerize |> enabled_only}
 		end
 	end
+
+	defp observerize(state = %Studio.Proto.FullState{sessions: sessions}) do
+		%Studio.Proto.FullState{state | admins: [],
+			transactions: [],
+			bands: [],
+			sessions_template: [],
+			sessions: Enum.filter_map(sessions,
+				fn(%Studio.Proto.Session{status: status}) -> (status in [:SS_awaiting_first, :SS_closed_ok, :SS_canceled_hard]) end,
+				fn(se = %Studio.Proto.Session{}) -> %Studio.Proto.Session{se | band_id: 1, description: ""} end)
+		}
+	end
+
 	def enabled_only(state = %Studio.Proto.FullState{}) do
 		Map.from_struct(state)
 		|> Map.keys
