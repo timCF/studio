@@ -20,19 +20,19 @@ INSERT INTO `rooms`
 ( `id`, `name`, `location_id`, `color`, `price_base`, `enabled` )
 VALUES
 # lemooor_1
-( 1, 'metal', 1, '#d2a679', 1200, 1 ),
-( 2, 'rock', 1, '#66cc00', 1200, 1 ),
-( 3, 'jazz', 1, '#ff8000', 1200, 1 ),
-( 4, 'vip', 1, '#1a8cff', 1500, 1 ),
-( 5, 'lux', 1, '#e6b800', 1500, 1 ),
+( 1, 'metal', 1, '#734d26', 1200, 1 ),
+( 2, 'rock', 1, '#336600', 1200, 1 ),
+( 3, 'jazz', 1, '#994d00', 1200, 1 ),
+( 4, 'vip', 1, '#004d99', 1500, 1 ),
+( 5, 'lux', 1, '#997a00', 1500, 1 ),
 # lemooor_2
-( 6, 'vintage', 2, '#ff66cc', 1100, 1 ),
-( 7, 'progressive', 2, '#00cc66', 1100, 1 ),
-( 8, 'indie', 2, '#00a3cc', 1100, 1 ),
-( 9, 'hard_rock', 2, '#cc33ff', 1300, 1 ),
-( 10, 'turbo_metal', 2, '#ff3300', 1300, 1 ),
-( 11, 'metal', 2, '#ff9900', 1300, 1 ),
-( 12, 'modern_rock', 2, '#0066ff', 1300, 1 )
+( 6, 'vintage', 2, '#cc0088', 1100, 1 ),
+( 7, 'progressive', 2, '#008040', 1100, 1 ),
+( 8, 'indie', 2, '#007a99', 1100, 1 ),
+( 9, 'hard_rock', 2, '#8600b3', 1300, 1 ),
+( 10, 'turbo_metal', 2, '#991f00', 1300, 1 ),
+( 11, 'metal', 2, '#b36b00', 1300, 1 ),
+( 12, 'modern_rock', 2, '#005ce6', 1300, 1 )
 ON DUPLICATE KEY UPDATE
 name = VALUES(name),
 location_id = VALUES(location_id),
