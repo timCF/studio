@@ -77,8 +77,9 @@ defmodule Studio.Worker do
 	defp auto_handle_sessions_template(nil), do: :ok
 	defp auto_handle_sessions_template(%Studio.Proto.Response{state: state = %Studio.Proto.FullState{}}) do
 		%Studio.Proto.FullState{sessions_template: lst} = Studio.Utils.enabled_only(state)
-		Enum.each(lst, fn(templ = %Studio.Proto.SessionTemplate{week_day: wd}) ->
+		Enum.each(lst, fn(templ = %Studio.Proto.SessionTemplate{week_day: wd, active_from: active_from}) ->
 			Studio.Utils.future_dates_seq(wd)
+			|> Stream.filter(fn(date) -> Timex.DateTime.to_seconds(date) >= Timex.DateTime.to_seconds(active_from) end)
 			|> Enum.each(fn(date) ->
 				session = Studio.Utils.session_from_template(templ, date)
 				case Studio.Storage.can_session_be_saved(session) do
