@@ -256,3 +256,6 @@ CREATE TABLE `sessions_template` (
 	KEY `enabled` (`enabled`),
 	KEY `stamp` (`stamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `sessions_template` ADD `active_from` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `sessions_template` ADD INDEX `active_from` (`active_from`);

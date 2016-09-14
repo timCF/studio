@@ -4,7 +4,7 @@ defmodule Studio.Storage do
 	use Silverb, [
 		# WARNING !!! these fields always are enums, timestamps, booleans in mysql !!!
 		{"@mysql_enums", [:band_kind, :week_day, :kind, :status, :ordered_by]},
-		{"@mysql_timestamps", [:stamp, :time_from, :time_to]},
+		{"@mysql_timestamps", [:stamp, :time_from, :time_to, :active_from]},
 		{"@mysql_unixtime", []},
 		{"@mysql_booleans", [:enabled, :fixprice, :can_order, :callback]},
 		{"@mysql_jsons", [:contacts, :instruments_ids]},
