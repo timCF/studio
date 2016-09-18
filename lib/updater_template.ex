@@ -32,9 +32,9 @@ defmodule Studio.Updater.Template do
 			|> Stream.filter(fn(date) -> Timex.DateTime.to_seconds(date) >= Timex.DateTime.to_seconds(active_from) end)
 			|> Enum.each(fn(date) ->
 				session = Studio.Utils.session_from_template(templ, date)
-				case do_work(Studio.Storage.can_session_be_saved(session)) do
+				case Studio.Storage.can_session_be_saved(session) do
 					check = %Studio.Checks.Session{action: :save} ->
-						case do_work(Studio.Storage.can_session_be_saved_auto(session)) do
+						case Studio.Storage.can_session_be_saved_auto(session) do
 							false ->
 								:ok
 							true ->
@@ -46,6 +46,7 @@ defmodule Studio.Updater.Template do
 					%Studio.Checks.Session{} ->
 						:ok
 				end
+				|> do_work
 			end)
 		end)
 	end
@@ -54,13 +55,13 @@ defmodule Studio.Updater.Template do
 		%Studio.Proto.Response{resp | status: :RS_error, message: message}
 	end
 	defp process_users_session(%Studio.Checks.Session{action: :save}, session = %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) do
-		case do_work(Studio.Storage.save_session(session)) do
+		case Studio.Storage.save_session(session) do
 			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "репетиция сохранена"}
 			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при сохранении репетиции, запишите её и обратитесь к разработчику #{inspect error}"}
 		end
 	end
 	defp process_users_session(%Studio.Checks.Session{action: :update, session_id: sid}, session = %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) when is_integer(sid) do
-		case do_work(%Studio.Proto.Session{session | id: sid} |> Studio.Storage.update_session) do
+		case %Studio.Proto.Session{session | id: sid} |> Studio.Storage.update_session do
 			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "репетиция обновлена"}
 			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при обновлении репетиции, запишите её и обратитесь к разработчику #{inspect error}"}
 		end
