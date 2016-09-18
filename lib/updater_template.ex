@@ -1,7 +1,7 @@
 defmodule Studio.Updater.Template do
 	require Logger
 	use Silverb, [
-		{"@ttl", 5000}
+		{"@ttl", 1000}
 	]
 	use ExActor.GenServer, export: :studio_updater_template
 	definit do
