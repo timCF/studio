@@ -7,12 +7,15 @@ defmodule Studio.Updater.Template do
 	definit do
 		{:ok, nil, @ttl}
 	end
-	definfo :timeout do
-		Logger.info("#{__MODULE__} auto upd start")
-		data = Studio.Loaders.Superadmin.get(:data)
-		_ = auto_handle_sessions_template(data)
-		Logger.info("#{__MODULE__} auto upd end")
-		{:noreply, nil, @ttl}
+	definfo :timeout, state: state do
+		case Studio.Loaders.Superadmin.get(:data) do
+			^state -> {:noreply, state, @ttl}
+			newstate ->
+				Logger.info("#{__MODULE__} auto upd start")
+				_ = auto_handle_sessions_template(newstate)
+				Logger.info("#{__MODULE__} auto upd end")
+				{:noreply, newstate, @ttl}
+		end
 	end
 
 	defmacrop do_work(body) do
