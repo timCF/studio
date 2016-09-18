@@ -11,13 +11,13 @@ defmodule Studio.Worker do
 		{:ok, %Studio.Worker{}, @ttl}
 	end
 	definfo :timeout, state: state = %Studio.Worker{} do
-		{:noreply, maybe_auto(Studio.now, state), @ttl}
+		{:noreply, state, @ttl}
 	end
 	defcall session_new_edit(session = %Studio.Proto.Session{}, _, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{}, timeout: @callt do
 		{
 			:reply,
 			(Studio.Storage.can_session_be_saved(session) |> process_users_session(session, resp)),
-			maybe_auto(Studio.now, state),
+			state,
 			@ttl
 		}
 	end
@@ -25,7 +25,7 @@ defmodule Studio.Worker do
 		{
 			:reply,
 			(Studio.Storage.can_band_be_saved(band) |> process_band_new_edit(band, resp)),
-			maybe_auto(Studio.now, state),
+			state,
 			@ttl
 		}
 	end
@@ -33,7 +33,7 @@ defmodule Studio.Worker do
 		{
 			:reply,
 			(Studio.Storage.can_session_template_be_saved(data) |> process_session_template_new_edit(data, resp)),
-			maybe_auto(Studio.now, state),
+			state,
 			@ttl
 		}
 	end
@@ -42,7 +42,7 @@ defmodule Studio.Worker do
 		{
 			:reply,
 			Studio.Storage.delete_from_table(id, table,resp),
-			maybe_auto(Studio.now, state),
+			state,
 			@ttl
 		}
 	end
@@ -50,54 +50,9 @@ defmodule Studio.Worker do
 		{
 			:reply,
 			lambda.(),
-			maybe_auto(Studio.now, state),
+			state,
 			@ttl
 		}
-	end
-
-	defp maybe_auto(current, state = %Studio.Worker{autostamp: nil}) do
-		_ = autoupdate()
-		%Studio.Worker{state | autostamp: current}
-	end
-	defp maybe_auto(current, state = %Studio.Worker{autostamp: last}) do
-		case (Timex.Comparable.diff(current, last, :seconds) * 1000) >= @ttl do
-			true ->
-				_ = autoupdate()
-				%Studio.Worker{state | autostamp: current}
-			false ->
-				state
-		end
-	end
-
-	defp autoupdate do
-		data = Studio.Loaders.Superadmin.get(:data)
-		_ = auto_handle_sessions_template(data)
-	end
-
-	defp auto_handle_sessions_template(nil), do: :ok
-	defp auto_handle_sessions_template(%Studio.Proto.Response{state: state = %Studio.Proto.FullState{}}) do
-		%Studio.Proto.FullState{sessions_template: lst} = Studio.Utils.enabled_only(state)
-		Enum.each(lst, fn(templ = %Studio.Proto.SessionTemplate{week_day: wd, active_from: active_from}) ->
-			Studio.Utils.future_dates_seq(wd)
-			|> Stream.filter(fn(date) -> Timex.DateTime.to_seconds(date) >= Timex.DateTime.to_seconds(active_from) end)
-			|> Enum.each(fn(date) ->
-				session = Studio.Utils.session_from_template(templ, date)
-				case Studio.Storage.can_session_be_saved(session) do
-					check = %Studio.Checks.Session{action: :save} ->
-						case Studio.Storage.can_session_be_saved_auto(session) do
-							false ->
-								:ok
-							true ->
-								case process_users_session(check, session, %Studio.Proto.Response{}) do
-									%Studio.Proto.Response{status: :RS_error, message: message} -> Logger.error("ERROR on autoupdate #{message}")
-									%Studio.Proto.Response{} -> :ok
-								end
-						end
-					%Studio.Checks.Session{} ->
-						:ok
-				end
-			end)
-		end)
 	end
 
 	defp process_users_session(%Studio.Checks.Session{action: :error, message: message}, %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) do
