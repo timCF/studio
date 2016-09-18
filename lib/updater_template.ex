@@ -8,8 +8,10 @@ defmodule Studio.Updater.Template do
 		{:ok, nil, @ttl}
 	end
 	definfo :timeout do
+		Logger.info("#{__MODULE__} auto upd start")
 		data = Studio.Loaders.Superadmin.get(:data)
 		_ = auto_handle_sessions_template(data)
+		Logger.info("#{__MODULE__} auto upd end")
 		{:noreply, nil, @ttl}
 	end
 

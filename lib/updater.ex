@@ -15,22 +15,22 @@ defmodule Studio.Updater do
 
 	defp auto_derive_prices(state, state), do: :ok
 	defp auto_derive_prices(nil, %Studio.Proto.Response{state: state = %Studio.Proto.FullState{sessions: sessions}}) do
-		Logger.info("auto upd start (INIT)")
+		Logger.info("#{__MODULE__} auto upd start (INIT)")
 		:rpc.pmap({__MODULE__, :auto_derive_prices_process}, [state], sessions)
 		|> Enum.each(fn
 			:ok -> :ok
 			sess = %Studio.Proto.Session{} -> _ = Studio.Worker.do_work(fn() -> Studio.Storage.maybe_update_session_amount(sess) end)
 		end)
-		Logger.info("auto upd end (INIT)")
+		Logger.info("#{__MODULE__} auto upd end (INIT)")
 	end
 	defp auto_derive_prices(%Studio.Proto.Response{state: %Studio.Proto.FullState{sessions: old_sessions}}, %Studio.Proto.Response{state: state = %Studio.Proto.FullState{sessions: sessions}}) do
-		Logger.info("auto upd start")
+		Logger.info("#{__MODULE__} auto upd start")
 		:rpc.pmap({__MODULE__, :auto_derive_prices_process}, [state], cut_off_extra_sessions(old_sessions, sessions))
 		|> Enum.each(fn
 			:ok -> :ok
 			sess = %Studio.Proto.Session{} -> _ = Studio.Worker.do_work(fn() -> Studio.Storage.maybe_update_session_amount(sess) end)
 		end)
-		Logger.info("auto upd end")
+		Logger.info("#{__MODULE__} auto upd end")
 	end
 	defp auto_derive_prices(_, _), do: :ok
 
