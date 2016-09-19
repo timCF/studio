@@ -58,16 +58,16 @@ defmodule Studio.Worker do
 	defp process_users_session(%Studio.Checks.Session{action: :error, message: message}, %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) do
 		%Studio.Proto.Response{resp | status: :RS_error, message: message}
 	end
+	defp process_users_session(%Studio.Checks.Session{action: action, session_id: sid}, session = %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) when is_integer(sid) and (action in [:update, :save]) do
+		case %Studio.Proto.Session{session | id: sid} |> Studio.Storage.update_session do
+			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "репетиция обновлена"}
+			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при обновлении репетиции, запишите её и обратитесь к разработчику #{inspect error}"}
+		end
+	end
 	defp process_users_session(%Studio.Checks.Session{action: :save}, session = %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) do
 		case Studio.Storage.save_session(session) do
 			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "репетиция сохранена"}
 			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при сохранении репетиции, запишите её и обратитесь к разработчику #{inspect error}"}
-		end
-	end
-	defp process_users_session(%Studio.Checks.Session{action: :update, session_id: sid}, session = %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) when is_integer(sid) do
-		case %Studio.Proto.Session{session | id: sid} |> Studio.Storage.update_session do
-			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "репетиция обновлена"}
-			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при обновлении репетиции, запишите её и обратитесь к разработчику #{inspect error}"}
 		end
 	end
 

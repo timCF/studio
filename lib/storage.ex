@@ -150,13 +150,19 @@ defmodule Studio.Storage do
 	#
 	#	these functions are generic for sessions and session_templates
 	#
-	defp can_session_be_saved_process([], %{:__struct__ => struct}) when (struct in @allowed_session_structs), do: %Studio.Checks.Session{action: :save, message: "", session_id: nil}
+	defp can_session_be_saved_process([], session = %{:__struct__ => struct}) when (struct in @allowed_session_structs) do
+		%Studio.Checks.Session{action: :save, message: "", session_id: nil}
+		|> maybe_set_session_id(session)
+	end
 	defp can_session_be_saved_process(lst = [_|_], session = %{:__struct__ => struct}) when (struct in @allowed_session_structs) do
 		pipe_matching %Studio.Checks.Session{action: nil},
 			%Studio.Checks.Session{action: nil}
+			|> maybe_set_session_id(session)
 			|> check_instruments_overlap(lst, session)
 			|> check_rooms_overlap(lst, session)
 	end
+	defp maybe_set_session_id(acc = %Studio.Checks.Session{}, %Studio.Proto.Session{id: id}) when is_integer(id), do: %Studio.Checks.Session{acc | session_id: id}
+	defp maybe_set_session_id(acc = %Studio.Checks.Session{}, %{}), do: acc
 	defp check_instruments_overlap(acc = %Studio.Checks.Session{}, lst = [_|_], %{:__struct__ => struct, band_id: bid, instruments_ids: iids}) when (struct in @allowed_session_structs) do
 		Stream.filter(lst, fn(%{band_id: band_id}) -> (band_id != bid) end)
 		|> Enum.reduce_while(acc, fn(%{instruments_ids: instruments_ids}, acc = %Studio.Checks.Session{}) ->
