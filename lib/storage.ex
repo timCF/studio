@@ -362,4 +362,16 @@ defmodule Studio.Storage do
 	end
 	defp make_location_pred(%Studio.Proto.StatisticsRequest{}), do: ""
 
+	def get_overdue_sessions do
+		"""
+		SELECT #{ %Studio.Proto.Session{} |> Map.from_struct |> Map.keys |> Enum.join(",") }
+		FROM sessions
+		WHERE
+			status = ? AND
+			time_to < DATE_ADD(NOW(), INTERVAL ? HOUR);
+		"""
+		|> Sqlx.exec(["SS_awaiting_first", -1], :studio)
+		|> Enum.map(&(&1 |> transform_values |> unmarshal_struct("sessions")))
+	end
+
 end

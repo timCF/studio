@@ -19,6 +19,7 @@ defmodule Studio do
 			worker(Studio.Worker, []),
 			worker(Studio.Updater, []),
 			worker(Studio.Updater.Template, []),
+			worker(Studio.Notificator, []),
 		# Define workers and child supervisors to be supervised
 		# worker(Studio.Worker, [arg1, arg2, arg3]),
 		]
