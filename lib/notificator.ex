@@ -13,7 +13,12 @@ defmodule Studio.Notificator do
 		case Studio.Storage.get_overdue_sessions do
 			[] -> :ok
 			lst = [%Studio.Proto.Session{}|_] ->
-				message = %Pmaker.Response{data: (%Studio.Proto.Response{status: :RS_warn, message: get_msg_text(lst), state: %Studio.Proto.FullState{hash: ""}} |> Studio.encode), encode: false}
+				%Studio.Proto.Response{state: %Studio.Proto.FullState{rooms: rooms}} = Studio.Loaders.Superadmin.get(:data)
+				locations_of_rooms = Enum.reduce(rooms, %{}, fn(%Studio.Proto.Room{id: id, location_id: lid}, acc = %{}) -> Map.put(acc, id, lid) end)
+				message = %Pmaker.Response{data: (%Studio.Proto.Response{status: :RS_warn,
+					destination_location_id: (Stream.map(lst, fn(%Studio.Proto.Session{room_id: rid}) -> Map.get(locations_of_rooms, rid) end) |> Enum.uniq),
+					message: get_msg_text(lst),
+					state: %Studio.Proto.FullState{hash: ""}} |> Studio.encode), encode: false}
 				Enum.each(@server_names, &(Pmaker.send2all(message, &1)))
 		end
 		{:noreply, nil, @ttl}
