@@ -79,6 +79,26 @@ VALUES
 ( 5, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
 ( 5, 'BK_cover', 0, 0, "WD_7", 0, 0 ),
 
+( 9, 'BK_cover', 0, 0, "WD_default", 800, 1 ),
+( 9, 'BK_cover', 0, 1080, "WD_default", 0, 0 ),
+( 9, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
+( 9, 'BK_cover', 0, 0, "WD_7", 0, 0 ),
+
+( 10, 'BK_cover', 0, 0, "WD_default", 800, 1 ),
+( 10, 'BK_cover', 0, 1080, "WD_default", 0, 0 ),
+( 10, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
+( 10, 'BK_cover', 0, 0, "WD_7", 0, 0 ),
+
+( 11, 'BK_cover', 0, 0, "WD_default", 800, 1 ),
+( 11, 'BK_cover', 0, 1080, "WD_default", 0, 0 ),
+( 11, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
+( 11, 'BK_cover', 0, 0, "WD_7", 0, 0 ),
+
+( 12, 'BK_cover', 0, 0, "WD_default", 800, 1 ),
+( 12, 'BK_cover', 0, 1080, "WD_default", 0, 0 ),
+( 12, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
+( 12, 'BK_cover', 0, 0, "WD_7", 0, 0 ),
+
 ( 0, 'BK_cover', 0, 0, "WD_default", 600, 1 ),
 ( 0, 'BK_cover', 0, 1080, "WD_default", 0, 0 ),
 ( 0, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
@@ -112,7 +132,18 @@ VALUES
 ( 8, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
 ( 8, 'BK_cover', 0, 0, "WD_7", 0, 0 ),
 
-( 8, 'BK_education', 0, 0, "WD_default", 450, 1 );
+( 8, 'BK_education', 0, 0, "WD_default", 450, 1 )
+
+ON DUPLICATE KEY UPDATE
+band_kind = VALUES(band_kind),
+number_from = VALUES(number_from),
+min_from = VALUES(min_from),
+week_day = VALUES(week_day),
+amount = VALUES(amount),
+fixprice = VALUES(fixprice);
+
+
+
 
 INSERT INTO `instruments`
 ( `name`, `location_id`, `price` , `enabled`)
