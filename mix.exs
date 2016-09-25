@@ -27,6 +27,7 @@ defmodule Studio.Mixfile do
 						:pipe,
 						:maybe,
 						:relx,
+            :tinca,
 					],
      mod: {Studio, []}]
   end
@@ -53,6 +54,7 @@ defmodule Studio.Mixfile do
 			{:pipe, github: "batate/elixir-pipes"},
 			{:maybe, github: "timCF/maybe"},
 			{:relx, github: "erlware/relx", tag: "v3.20.0", override: true},
+      {:tinca, github: "timCF/tinca"},
 		]
 	end
 end

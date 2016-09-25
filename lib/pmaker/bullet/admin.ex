@@ -53,7 +53,7 @@ Enum.each([Studio.Pmaker.Bullet.Admin, Studio.Pmaker.Bullet.Observer], fn(module
 			%Studio.Proto.Response{status: :RS_statistics, message: "", state: %Studio.Proto.FullState{hash: ""}, statistics: Studio.Storage.statistics(sr)}
 		end
 		defp process_request(%Studio.Proto.Request{cmd: :CMD_new_transaction, subject: %Studio.Proto.FullState{transactions: [tr = %Studio.Proto.Transaction{}]}}, resp = %Studio.Proto.Response{}) do
-			:ok = Studio.Storage.new_transaction(tr)
+			:ok = Tinca.memo(&Studio.Storage.new_transaction/1, [tr], 60000)
 			%Studio.Proto.Response{resp | status: :RS_notice, message: "транзакция проведена"}
 		end
 

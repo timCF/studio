@@ -349,9 +349,31 @@ defmodule Studio.Storage do
 			%{status: "SS_canceled_hard", price: price}, acc = %Studio.Proto.Statistics{sessions_all: sa, sessions_cancel_hard: sc, cash_prices: cash_prices} ->
 				%Studio.Proto.Statistics{acc | sessions_all: sa + 1, sessions_cancel_hard: sc + 1, cash_prices: cash_prices + price}
 			some = %{}, acc = %Studio.Proto.Statistics{sessions_all: sa} ->
-				Logger.error("unexpected statistics element #{inspect some}")
+				_ = Logger.error("unexpected statistics element #{inspect some}")
 				%Studio.Proto.Statistics{acc | sessions_all: sa + 1}
 		end)
+		|> statistics_transactions(sr)
+	end
+
+	defp statistics_transactions(acc = %Studio.Proto.Statistics{}, %Studio.Proto.StatisticsRequest{time_from: time_from, time_to: time_to, location_id: location_id}) do
+		"""
+		SELECT
+			cash_in, cash_out FROM transactions
+		WHERE
+			stamp >= ? AND
+			stamp <= ?
+			#{(case is_integer(location_id) do ; true -> " AND location_id = #{Integer.to_string(location_id)};" ; false -> ";" ; end)}
+		"""
+		|> Sqlx.exec([Studio.ts2mysql(time_from), Studio.ts2mysql(time_to)], :studio)
+		|> Enum.reduce(%Studio.Proto.Statistics{acc | transactions_cash_prices: 0, transactions_cash_input: 0},
+			fn(%{cash_in: cash_in, cash_out: cash_out}, acc = %Studio.Proto.Statistics{transactions_cash_prices: transactions_cash_prices, transactions_cash_input: transactions_cash_input}) ->
+				%Studio.Proto.Statistics{acc | transactions_cash_prices: transactions_cash_prices + cash_out, transactions_cash_input: transactions_cash_input + cash_in}
+			end)
+		|> statistics_finalize
+	end
+
+	defp statistics_finalize(acc = %Studio.Proto.Statistics{cash_prices: cash_prices, cash_input: cash_input, transactions_cash_prices: transactions_cash_prices, transactions_cash_input: transactions_cash_input}) do
+		%Studio.Proto.Statistics{acc | all_cash_prices: (cash_prices + transactions_cash_prices), all_cash_input: (cash_input + transactions_cash_input)}
 	end
 
 	defp make_location_pred(%Studio.Proto.StatisticsRequest{room_id: room_id}) when is_integer(room_id), do: "AND room_id = #{Integer.to_string(room_id)}"

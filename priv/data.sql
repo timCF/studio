@@ -268,10 +268,10 @@ VALUES
 
 
 INSERT INTO `transactions`
-( `kind`, `subject_id`, `subject_quantity`, `amount`, `cash_in`, `cash_out`, `description`, `admin_id` )
+( `kind`, `subject_id`, `subject_quantity`, `amount`, `cash_in`, `cash_out`, `description`, `admin_id`, `location_id` )
 VALUES
-( 'TK_sell', 1, 2, 200, 1000, 800, '', 2 ),
-( 'TK_band_room', 1, 1, 1400, 2000, 600, '', 2 );
+( 'TK_sell', 1, 2, 200, 1000, 800, '', 2 , 1),
+( 'TK_band_room', 1, 1, 1400, 2000, 600, '', 2 , 1);
 
 
 

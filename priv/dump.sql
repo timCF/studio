@@ -143,6 +143,7 @@ CREATE TABLE `transactions` (
 	`description` BLOB NOT NULL DEFAULT '',
 	`admin_id` bigint unsigned NOT NULL,
 	`stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	`location_id` bigint unsigned NOT NULL,
 	PRIMARY KEY (`id`),
 	KEY `kind` (`kind`),
 	KEY `subject_id` (`subject_id`),
@@ -151,7 +152,8 @@ CREATE TABLE `transactions` (
 	KEY `cash_in` (`cash_in`),
 	KEY `cash_out` (`cash_out`),
 	KEY `admin_id` (`admin_id`),
-	KEY `stamp` (`stamp`)
+	KEY `stamp` (`stamp`),
+	KEY `location_id` (`location_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
