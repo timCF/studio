@@ -35,7 +35,6 @@ defmodule Studio.Storage do
 			]},
 		{"@mysql_tabs_unlim", [
 			"transactions",
-			"bands",
 			"sessions",
 			]},
 		{"@end_status", ["SS_closed_auto","SS_closed_ok","SS_canceled_hard"]}, # if alreaty was payment
@@ -101,7 +100,7 @@ defmodule Studio.Storage do
 		%{start: tss, end: tse} = range(3, "MONTH")
 		condition = "WHERE stamp > '#{tss}' AND stamp < '#{tse}'"
 		Enum.reduce(@mysql_tabs, %Studio.Proto.FullState{}, fn
-			tab, acc when (tab in @mysql_tabs_unlim) -> Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, condition) end)
+			tab, acc when (tab in @mysql_tabs_unlim) -> Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, condition<>" ORDER BY id DESC") end)
 			tab, acc -> Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, "") end)
 		end)
 	end
