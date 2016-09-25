@@ -134,10 +134,10 @@ CREATE TABLE `stuff2sell` (
 DROP TABLE IF EXISTS `transactions`;
 CREATE TABLE `transactions` (
 	`id` bigint unsigned NOT NULL AUTO_INCREMENT,
-	`kind` ENUM('TK_band_room','TK_band_instrument','TK_band_deposit','TK_band_punishment','TK_wage_base','TK_wage_bonus','TK_wage_punishment','TK_rent','TK_buy','TK_repair','TK_sell') NOT NULL, # WITHOUT DEFAULT VALUE
+	`kind` ENUM('TK_band_room','TK_band_instrument','TK_band_deposit','TK_band_punishment','TK_wage_base','TK_wage_bonus','TK_wage_punishment','TK_rent','TK_buy','TK_repair','TK_sell','TK_bonus') NOT NULL, # WITHOUT DEFAULT VALUE
 	`subject_id` bigint unsigned NOT NULL, # band , admin or other stuff id
 	`subject_quantity` bigint unsigned NOT NULL,
-	`amount` bigint unsigned NOT NULL, # - from balance ( if band )
+	`amount` bigint NOT NULL, # cash_in - cash_out
 	`cash_in` bigint unsigned NOT NULL, # + to balance ( if band )
 	`cash_out` bigint unsigned NOT NULL, # - from balance ( if band )
 	`description` BLOB NOT NULL DEFAULT '',

@@ -374,4 +374,12 @@ defmodule Studio.Storage do
 		|> Enum.map(&(&1 |> transform_values |> unmarshal_struct("sessions")))
 	end
 
+	# this case subject_id is band_id
+	def new_transaction(tr = %Studio.Proto.Transaction{amount: amount, cash_in: cin, cash_out: cout, subject_id: id, kind: kind}) when (amount == (cin - cout)) and (kind in [:TK_band_room, :TK_band_instrument, :TK_band_deposit, :TK_band_punishment, :TK_sell, :TK_bonus]) do
+		data = untransform_values(tr)
+		%{error: []} = Sqlx.exec("UPDATE bands SET balance = balance + ? WHERE id = ?;", [amount, id], :studio)
+		%{error: []} = Sqlx.insert([data], Enum.filter_map(data, fn({_,v}) -> v != nil end, fn({k,_}) -> k end), "transactions", :studio)
+		:ok
+	end
+
 end
