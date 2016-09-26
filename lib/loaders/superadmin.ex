@@ -3,6 +3,13 @@ defmodule Studio.Loaders.Superadmin do
 		{"@refresh_message", (%Studio.Proto.Response{status: :RS_refresh, message: "", state: %Studio.Proto.FullState{hash: ""}} |> Studio.encode)},
 		{"@server_names", (Application.get_env(:pmaker, :servers) |> Enum.map(fn(%{module: module}) -> module end))}
 	]
+	def await() do
+		GenServer.call(Studio.Loaders.Superadmin, :await, 3600000)
+	end
+	def handle_call(:await, _, state) do
+		send(self, :timeout)
+		{:reply, :ok, state, 200}
+	end
 	use Cachex, [ttl: 200, export: true, serialize_on_init: false]
 	defp read_callback(_) do
 		data = %Studio.Proto.FullState{sessions: sessions, sessions_template: sessions_template} = Studio.Storage.fullstate

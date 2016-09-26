@@ -3,7 +3,7 @@ defmodule Studio.Worker do
 	require Logger
 	use Silverb, [
 		{"@ttl", 5000},
-		{"@callt", 120000},
+		{"@callt", 3600000},
 	]
 	use ExActor.GenServer, export: :studio_worker
 	defstruct autostamp: nil
@@ -38,10 +38,21 @@ defmodule Studio.Worker do
 		}
 	end
 	defcall delete_from_table(id, table, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{}, timeout: @callt do
-		_ = if (table == "sessions_template"), do: rm_future_auto_sessions(id)
+		%Studio.Proto.Response{state: %Studio.Proto.FullState{sessions_template: lst}} = Studio.Loaders.Superadmin.get(:data)
+		[st = %Studio.Proto.SessionTemplate{id: ^id}] = Enum.filter(lst, fn(%Studio.Proto.SessionTemplate{id: this_id}) -> this_id == id end)
+		result = Studio.Storage.delete_from_table(id, table,resp)
+		if (table == "sessions_template") do
+			:ok = Studio.Loaders.Superadmin.await()
+			:ok = Studio.Loaders.Superadmin.await()
+			spawn_link(fn() ->
+				:ok = Studio.Updater.Template.await()
+				:ok = Studio.Updater.await()
+				:ok = Studio.Storage.delete_auto_sessions_like_this(st)
+			end)
+		end
 		{
 			:reply,
-			Studio.Storage.delete_from_table(id, table,resp),
+			result,
 			state,
 			@ttl
 		}
@@ -101,12 +112,6 @@ defmodule Studio.Worker do
 			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "постоянная репетиция обновлена"}
 			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при обновлении, запишите её и обратитесь к разработчику #{inspect error}"}
 		end
-	end
-
-	defp rm_future_auto_sessions(id) do
-		%Studio.Proto.Response{state: %Studio.Proto.FullState{sessions_template: lst}} = Studio.Loaders.Superadmin.get(:data)
-		[st = %Studio.Proto.SessionTemplate{id: ^id}] = Enum.filter(lst, fn(%Studio.Proto.SessionTemplate{id: this_id}) -> this_id == id end)
-		:ok = Studio.Storage.delete_auto_sessions_like_this(st)
 	end
 
 end

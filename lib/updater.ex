@@ -7,6 +7,9 @@ defmodule Studio.Updater do
 	definit do
 		{:ok, nil, @ttl}
 	end
+	defcall await(), timeout: 3600000, state: state do
+		{:reply, :ok, state, @ttl}
+	end
 	definfo :timeout, state: state do
 		newstate = Studio.Loaders.Superadmin.get(:data)
 		_ = auto_derive_prices(state, newstate)

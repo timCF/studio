@@ -7,6 +7,9 @@ defmodule Studio.Updater.Template do
 	definit do
 		{:ok, nil, @ttl}
 	end
+	defcall await(), timeout: 3600000, state: state do
+		{:reply, :ok, state, @ttl}
+	end
 	definfo :timeout, state: state do
 		case Studio.Loaders.Superadmin.get(:data) do
 			^state -> {:noreply, state, @ttl}
