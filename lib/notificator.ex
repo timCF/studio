@@ -13,13 +13,16 @@ defmodule Studio.Notificator do
 		case Studio.Storage.get_overdue_sessions do
 			[] -> :ok
 			lst = [%Studio.Proto.Session{}|_] ->
-				%Studio.Proto.Response{state: %Studio.Proto.FullState{rooms: rooms}} = Studio.Loaders.Superadmin.get(:data)
+				%Studio.Proto.Response{state: %Studio.Proto.FullState{rooms: rooms, locations: locations}} = Studio.Loaders.Superadmin.get(:data)
 				locations_of_rooms = Enum.reduce(rooms, %{}, fn(%Studio.Proto.Room{id: id, location_id: lid}, acc = %{}) -> Map.put(acc, id, lid) end)
-				message = %Pmaker.Response{data: (%Studio.Proto.Response{status: :RS_warn,
-					destination_location_id: (Stream.map(lst, fn(%Studio.Proto.Session{room_id: rid}) -> Map.get(locations_of_rooms, rid) end) |> Enum.uniq),
-					message: get_msg_text(lst),
-					state: %Studio.Proto.FullState{hash: ""}} |> Studio.encode), encode: false}
-				Enum.each(@server_names, &(Pmaker.send2all(message, &1)))
+				Enum.group_by(lst, fn(%Studio.Proto.Session{room_id: rid}) -> Map.get(locations_of_rooms, rid) end)
+				|> Enum.each(fn({lid, lst = [_|_]}) ->
+					message = %Pmaker.Response{data: (%Studio.Proto.Response{status: :RS_warn,
+						destination_location_id: [lid],
+						message: get_location_text(locations, lid)<>" "<>get_msg_text(lst),
+						state: %Studio.Proto.FullState{hash: ""}} |> Studio.encode), encode: false}
+					Enum.each(@server_names, &(Pmaker.send2all(message, &1)))
+				end)
 		end
 		{:noreply, nil, @ttl}
 	end
@@ -27,5 +30,9 @@ defmodule Studio.Notificator do
 	defp get_msg_text([%Studio.Proto.Session{time_from: time_from}]), do: "есть не закрытая вовремя репетиция за #{ Timex.format!(time_from, @timex_format) }"
 	defp get_msg_text(lst = [%Studio.Proto.Session{time_from: time_from}|_]), do: "есть не закрытая вовремя репетиция за #{ Timex.format!(time_from, @timex_format) } и ещё #{ length(lst) - 1 } других"
 
+	defp get_location_text(locations = [_|_], lid) do
+		[%Studio.Proto.Location{name: name}] = Enum.filter(locations, fn(%Studio.Proto.Location{id: id}) -> id == lid end)
+		"на базе #{name}"
+	end
 
 end
