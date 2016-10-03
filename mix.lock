@@ -39,4 +39,5 @@
   "timex": {:git, "https://github.com/bitwalker/timex.git", "7c736b6624b692b613a8ce2ec1086439780657e0", [tag: "2.2.1"]},
   "tinca": {:git, "https://github.com/timCF/tinca.git", "5fcfa011477d7f14d8bc44f5dbd385f33c672818", []},
   "tzdata": {:hex, :tzdata, "0.5.8", "a4ffe564783c6519e4df230a5d0e1cf44b7db7f576bcae76d05540b5da5b6143", [:mix], [{:hackney, "~> 1.0", [hex: :hackney, optional: false]}]},
+  "uelli": {:git, "https://github.com/timCF/uelli.git", "59d9a48316cddce87b49a43fb9bc1713e2677955", []},
   "uuid": {:git, "https://github.com/okeuday/uuid.git", "fdd2861e2f5049c25d44ff342c9756ce64a2a783", []}}

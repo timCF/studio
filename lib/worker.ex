@@ -1,6 +1,7 @@
 # use only one worker to prevent collisions
 defmodule Studio.Worker do
 	require Logger
+	require Uelli
 	use Silverb, [
 		{"@ttl", 5000},
 		{"@callt", 3600000},
@@ -42,12 +43,18 @@ defmodule Studio.Worker do
 		[st = %Studio.Proto.SessionTemplate{id: ^id}] = Enum.filter(lst, fn(%Studio.Proto.SessionTemplate{id: this_id}) -> this_id == id end)
 		result = Studio.Storage.delete_from_table(id, table,resp)
 		if (table == "sessions_template") do
-			:ok = Studio.Loaders.Superadmin.await()
-			:ok = Studio.Loaders.Superadmin.await()
-			spawn_link(fn() ->
-				:ok = Studio.Updater.Template.await()
-				:ok = Studio.Updater.await()
-				:ok = Studio.Storage.delete_auto_sessions_like_this(st)
+			#
+			#	TODO : this is bad, very bad practice, I know :(((
+			#
+			spawn(fn() ->
+				Enum.each(1..5, fn(_) ->
+					_ = Studio.Loaders.Superadmin.await() |> Uelli.try_catch
+					_ = Studio.Loaders.Superadmin.await() |> Uelli.try_catch
+					_ = Studio.Updater.Template.await() |> Uelli.try_catch
+					_ = Studio.Updater.await() |> Uelli.try_catch
+					_ = Studio.Worker.do_work(fn() -> Studio.Storage.delete_auto_sessions_like_this(st) end) |> Uelli.try_catch
+					_ = :timer.sleep(1000)
+				end)
 			end)
 		end
 		{

@@ -28,6 +28,7 @@ defmodule Studio.Mixfile do
 						:maybe,
 						:relx,
             :tinca,
+            :uelli,
 					],
      mod: {Studio, []}]
   end
@@ -55,6 +56,7 @@ defmodule Studio.Mixfile do
 			{:maybe, github: "timCF/maybe"},
 			{:relx, github: "erlware/relx", tag: "v3.20.0", override: true},
       {:tinca, github: "timCF/tinca"},
+      {:uelli, github: "timCF/uelli"},
 		]
 	end
 end
