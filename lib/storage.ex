@@ -154,11 +154,14 @@ defmodule Studio.Storage do
 		|> maybe_set_session_id(session)
 	end
 	defp can_session_be_saved_process(lst = [_|_], session = %{:__struct__ => struct}) when (struct in @allowed_session_structs) do
-		pipe_matching %Studio.Checks.Session{action: nil},
+		(
+			pipe_matching %Studio.Checks.Session{action: nil},
 			%Studio.Checks.Session{action: nil}
 			|> maybe_set_session_id(session)
 			|> check_instruments_overlap(lst, session)
 			|> check_rooms_overlap(lst, session)
+		)
+		|> maybe_deny_future(session)
 	end
 	defp maybe_set_session_id(acc = %Studio.Checks.Session{}, %Studio.Proto.Session{id: id}) when is_integer(id), do: %Studio.Checks.Session{acc | session_id: id}
 	defp maybe_set_session_id(acc = %Studio.Checks.Session{}, %{}), do: acc
@@ -183,6 +186,13 @@ defmodule Studio.Storage do
 				end
 		end
 	end
+	defp maybe_deny_future(acc = %Studio.Checks.Session{}, %Studio.Proto.Session{status: :SS_closed_ok, time_to: tt}) do
+		case (tt |> Timex.DateTime.from_milliseconds |> Timex.Timezone.convert(Studio.timezone) |> Timex.DateTime.to_seconds) > (Studio.now |> Timex.DateTime.to_seconds) do
+			true -> %Studio.Checks.Session{acc | action: :error, message: "сессии из будущего закрывать запрещено"}
+			false -> acc
+		end
+	end
+	defp maybe_deny_future(acc = %Studio.Checks.Session{}, %{:__struct__ => struct}) when (struct in @allowed_session_structs), do: acc
 	#
 	#	these functions are generic for sessions and session_templates
 	#
