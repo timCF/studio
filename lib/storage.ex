@@ -186,8 +186,8 @@ defmodule Studio.Storage do
 				end
 		end
 	end
-	defp maybe_deny_future(acc = %Studio.Checks.Session{}, %Studio.Proto.Session{status: :SS_closed_ok, time_to: tt}) do
-		case (tt |> Timex.DateTime.from_milliseconds |> Timex.Timezone.convert(Studio.timezone) |> Timex.DateTime.to_seconds) > (Studio.now |> Timex.DateTime.to_seconds) do
+	defp maybe_deny_future(acc = %Studio.Checks.Session{}, %Studio.Proto.Session{status: :SS_closed_ok, time_from: tf}) do
+		case (tf |> Timex.DateTime.from_milliseconds |> Timex.Timezone.convert(Studio.timezone) |> Timex.DateTime.to_seconds) > (Studio.now |> Timex.DateTime.to_seconds) do
 			true -> %Studio.Checks.Session{acc | action: :error, message: "сессии из будущего закрывать запрещено"}
 			false -> acc
 		end
