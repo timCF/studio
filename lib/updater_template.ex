@@ -14,9 +14,9 @@ defmodule Studio.Updater.Template do
 		case Studio.Loaders.Superadmin.get(:data) do
 			^state -> {:noreply, state, @ttl}
 			newstate ->
-				Logger.info("#{__MODULE__} auto upd start")
+				_ = Logger.info("#{__MODULE__} auto upd start")
 				_ = auto_handle_sessions_template(newstate)
-				Logger.info("#{__MODULE__} auto upd end")
+				_ = Logger.info("#{__MODULE__} auto upd end")
 				{:noreply, newstate, @ttl}
 		end
 	end
@@ -36,7 +36,7 @@ defmodule Studio.Updater.Template do
 			|> Enum.each(fn(date) ->
 				session = Studio.Utils.session_from_template(templ, date)
 				case Studio.Storage.can_session_be_saved(session) do
-					check = %Studio.Checks.Session{action: :save} ->
+					check = %Studio.Checks.Session{action: cmd} when (cmd in [:save, :update]) ->
 						case Studio.Storage.can_session_be_saved_auto(session) do
 							false ->
 								:ok

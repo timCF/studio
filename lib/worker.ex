@@ -42,20 +42,8 @@ defmodule Studio.Worker do
 		%Studio.Proto.Response{state: %Studio.Proto.FullState{sessions_template: lst}} = Studio.Loaders.Superadmin.get(:data)
 		[st = %Studio.Proto.SessionTemplate{id: ^id}] = Enum.filter(lst, fn(%Studio.Proto.SessionTemplate{id: this_id}) -> this_id == id end)
 		result = Studio.Storage.delete_from_table(id, table,resp)
-		if (table == "sessions_template") do
-			#
-			#	TODO : this is bad, very bad practice, I know :(((
-			#
-			spawn(fn() ->
-				Enum.each(1..5, fn(_) ->
-					_ = Studio.Loaders.Superadmin.await() |> Uelli.try_catch
-					_ = Studio.Loaders.Superadmin.await() |> Uelli.try_catch
-					_ = Studio.Updater.Template.await() |> Uelli.try_catch
-					_ = Studio.Updater.await() |> Uelli.try_catch
-					_ = Studio.Worker.do_work(fn() -> Studio.Storage.delete_auto_sessions_like_this(st) end) |> Uelli.try_catch
-					_ = :timer.sleep(1000)
-				end)
-			end)
+		_ = if (table == "sessions_template") do
+			_ = purge_sessions_from_template(st)
 		end
 		{
 			:reply,
@@ -71,6 +59,22 @@ defmodule Studio.Worker do
 			state,
 			@ttl
 		}
+	end
+
+	#
+	#	TODO : this is bad, very bad practice, I know :(((
+	#
+	defp purge_sessions_from_template(st = %Studio.Proto.SessionTemplate{}) do
+		spawn(fn() ->
+			Enum.each(1..5, fn(_) ->
+				_ = Studio.Loaders.Superadmin.await() |> Uelli.try_catch
+				_ = Studio.Loaders.Superadmin.await() |> Uelli.try_catch
+				_ = Studio.Updater.Template.await() |> Uelli.try_catch
+				_ = Studio.Updater.await() |> Uelli.try_catch
+				_ = Studio.Worker.do_work(fn() -> Studio.Storage.delete_auto_sessions_like_this(st) end) |> Uelli.try_catch
+				_ = :timer.sleep(1000)
+			end)
+		end)
 	end
 
 	defp process_users_session(%Studio.Checks.Session{action: :error, message: message}, %Studio.Proto.Session{}, resp = %Studio.Proto.Response{}) do
@@ -110,13 +114,17 @@ defmodule Studio.Worker do
 	end
 	defp process_session_template_new_edit(%Studio.Checks.Session{action: :save}, data = %Studio.Proto.SessionTemplate{}, resp = %Studio.Proto.Response{}) do
 		case Studio.Storage.generic_data_new(data, "sessions_template") do
-			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "постоянная репетиция сохранена"}
+			:ok ->
+				_ = purge_sessions_from_template(data)
+				%Studio.Proto.Response{resp | status: :RS_notice, message: "постоянная репетиция сохранена"}
 			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при сохранении, запишите её и обратитесь к разработчику #{inspect error}"}
 		end
 	end
 	defp process_session_template_new_edit(%Studio.Checks.Session{action: :update, session_id: sid}, data = %Studio.Proto.SessionTemplate{}, resp = %Studio.Proto.Response{}) when is_integer(sid) do
 		case %Studio.Proto.SessionTemplate{data | id: sid} |> Studio.Storage.generic_data_update("sessions_template") do
-			:ok -> %Studio.Proto.Response{resp | status: :RS_notice, message: "постоянная репетиция обновлена"}
+			:ok ->
+				_ = purge_sessions_from_template(data)
+				%Studio.Proto.Response{resp | status: :RS_notice, message: "постоянная репетиция обновлена"}
 			{:error, error} -> %Studio.Proto.Response{resp | status: :RS_error, message: "ошибка при обновлении, запишите её и обратитесь к разработчику #{inspect error}"}
 		end
 	end
