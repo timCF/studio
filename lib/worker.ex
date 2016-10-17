@@ -14,10 +14,15 @@ defmodule Studio.Worker do
 	definfo :timeout, state: state = %Studio.Worker{} do
 		{:noreply, state, @ttl}
 	end
-	defcall session_new_edit(session = %Studio.Proto.Session{}, _, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{}, timeout: @callt do
+	defcall session_new_edit(session = %Studio.Proto.Session{}, cmd, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{}, timeout: @callt do
+		check = case Studio.Storage.can_session_be_saved(session) do
+							check = %Studio.Checks.Session{action: :update} when (cmd == :CMD_new_session) ->
+								%Studio.Checks.Session{check | action: :error, message: "данная группа уже репитирует в это время, чтобы отредактировать репетицию откройте её через календарь"}
+							check = %Studio.Checks.Session{} -> check
+						end
 		{
 			:reply,
-			(Studio.Storage.can_session_be_saved(session) |> process_users_session(session, resp)),
+			process_users_session(check, session, resp),
 			state,
 			@ttl
 		}
