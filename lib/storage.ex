@@ -186,7 +186,7 @@ defmodule Studio.Storage do
 				case Enum.filter(lst, fn(%{band_id: band_id}) -> (band_id == bid) end) do
 					[] -> %Studio.Checks.Session{acc | action: :save}
 					[%{status: status}] when (status in @end_status) -> %Studio.Checks.Session{acc | action: :error, message: "репетиция в это время уже закрыта"}
-					[%{id: id}] -> %Studio.Checks.Session{acc | action: :update, session_id: id}
+					[%{id: id, status: status}] -> %Studio.Checks.Session{acc | action: :update, session_id: id, db_sess_status: Maybe.to_atom(status)}
 					[_|_] -> %Studio.Checks.Session{acc | action: :error, message: "данная группа уже репетирует в это время более одной сессии"}
 				end
 		end

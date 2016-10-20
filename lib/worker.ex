@@ -16,7 +16,7 @@ defmodule Studio.Worker do
 	end
 	defcall session_new_edit(session = %Studio.Proto.Session{}, cmd, resp = %Studio.Proto.Response{}), state: state = %Studio.Worker{}, timeout: @callt do
 		check = case Studio.Storage.can_session_be_saved(session) do
-							check = %Studio.Checks.Session{action: :update} when (cmd == :CMD_new_session) ->
+							check = %Studio.Checks.Session{action: :update, db_sess_status: :SS_awaiting_first} when (cmd == :CMD_new_session) ->
 								%Studio.Checks.Session{check | action: :error, message: "данная группа уже репитирует в это время, чтобы отредактировать репетицию откройте её через календарь"}
 							check = %Studio.Checks.Session{} -> check
 						end

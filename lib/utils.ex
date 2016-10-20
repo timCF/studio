@@ -140,5 +140,6 @@ end
 defmodule Studio.Checks.Session do
 	defstruct action: nil, # :save | :update | :error
 			message: "",
-			session_id: nil
+			session_id: nil,
+			db_sess_status: nil
 end
