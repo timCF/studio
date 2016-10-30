@@ -19,7 +19,7 @@ defmodule Studio.Updater do
 	defp auto_derive_prices(state, state), do: :ok
 	defp auto_derive_prices(nil, %Studio.Proto.Response{state: state = %Studio.Proto.FullState{sessions: sessions}}) do
 		_ = Logger.info("#{__MODULE__} auto upd start (INIT)")
-		:rpc.pmap({__MODULE__, :auto_derive_prices_process}, [state], sessions)
+		Exutils.pmap_lim(sessions, 1, 100, &(auto_derive_prices_process(&1, state)))
 		|> Enum.each(fn
 			:ok -> :ok
 			sess = %Studio.Proto.Session{} -> _ = Studio.Worker.do_work(fn() -> Studio.Storage.maybe_update_session_amount(sess) end)
@@ -28,7 +28,8 @@ defmodule Studio.Updater do
 	end
 	defp auto_derive_prices(%Studio.Proto.Response{state: %Studio.Proto.FullState{sessions: old_sessions}}, %Studio.Proto.Response{state: state = %Studio.Proto.FullState{sessions: sessions}}) do
 		_ = Logger.info("#{__MODULE__} auto upd start")
-		:rpc.pmap({__MODULE__, :auto_derive_prices_process}, [state], cut_off_extra_sessions(old_sessions, sessions))
+		cut_off_extra_sessions(old_sessions, sessions)
+		|> Exutils.pmap_lim(1, 100, &(auto_derive_prices_process(&1, state)))
 		|> Enum.each(fn
 			:ok -> :ok
 			sess = %Studio.Proto.Session{} -> _ = Studio.Worker.do_work(fn() -> Studio.Storage.maybe_update_session_amount(sess) end)
