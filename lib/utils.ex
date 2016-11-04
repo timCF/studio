@@ -131,9 +131,12 @@ defmodule Studio.Utils do
 		|> round
 		|> abs
 	end
-	defp derive_instruments_price(%Studio.Proto.Session{instruments_ids: ids}, instruments) do
+	defp derive_instruments_price(%Studio.Proto.Session{instruments_ids: ids, time_from: time_from = %Timex.DateTime{}, time_to: time_to = %Timex.DateTime{}}, instruments) do
 		Stream.filter(instruments, fn(%Studio.Proto.Instrument{id: id}) -> Enum.member?(ids, id) end)
 		|> Enum.reduce(0, fn(%Studio.Proto.Instrument{price: price}, acc) -> price + acc end)
+		|> (fn(amount) -> amount * (Timex.diff(time_from, time_to, :hours) / 3) end).()
+		|> round
+		|> abs
 	end
 
 end
