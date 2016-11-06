@@ -261,3 +261,6 @@ CREATE TABLE `sessions_template` (
 
 ALTER TABLE `sessions_template` ADD `active_from` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE `sessions_template` ADD INDEX `active_from` (`active_from`);
+
+ALTER TABLE `sessions` ADD `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `sessions` ADD INDEX `created_at` (`created_at`);

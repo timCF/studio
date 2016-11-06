@@ -87,7 +87,7 @@ defmodule Studio.Storage do
 	def gettab(tab, condition) do
 		"SELECT * FROM #{tab} #{condition};"
 		|> Sqlx.exec([], :studio)
-		|> Enum.map(&(&1 |> transform_values |> unmarshal_struct(tab)))
+		|> Enum.map(&(&1 |> Map.delete(:created_at) |> transform_values |> unmarshal_struct(tab)))
 	end
 
 	# returns %{start: ts1, end: ts2} map
