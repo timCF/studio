@@ -205,8 +205,8 @@ defmodule Studio.Storage do
 	def save_session(session = %Studio.Proto.Session{}) do
 		session = untransform_values(session) |> Map.delete(:id) |> Map.delete(:stamp)
 		keys = Map.keys(session)
-		case	"INSERT INTO sessions (#{ Enum.join(keys, ",") }, created_at) VALUES (?, NOW());"
-				|> Sqlx.exec([ Enum.map(keys, &(Map.get(session,&1))) ], :studio) do
+		case	"INSERT INTO sessions (#{ ["created_at"|keys] |> Enum.join(",") }) VALUES (?);"
+				|> Sqlx.exec([[ (Studio.now |> Timex.format!("{YYYY}-{0M}-{0D} {0h24}:{0m}:{0s}")) | Enum.map(keys, &(Map.get(session,&1))) ]], :studio) do
 			%{error: []} -> :ok
 			error -> {:error, error}
 		end
