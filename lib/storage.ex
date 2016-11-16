@@ -96,11 +96,15 @@ defmodule Studio.Storage do
 		res
 	end
 
+	defp get_ts_field("transactions"), do: "stamp"
+	defp get_ts_field("sessions"), do: "time_from"
+
 	def fullstate do
-		%{start: tss, end: tse} = range(3, "MONTH")
-		condition = "WHERE stamp > '#{tss}' AND stamp < '#{tse}'"
+		%{start: tss, end: tse} = range(1, "MONTH")
 		Enum.reduce(@mysql_tabs, %Studio.Proto.FullState{}, fn
-			tab, acc when (tab in @mysql_tabs_unlim) -> Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, condition<>" ORDER BY id DESC") end)
+			tab, acc when (tab in @mysql_tabs_unlim) ->
+				condition = "WHERE #{get_ts_field(tab)} > '#{tss}' AND #{get_ts_field(tab)} < '#{tse}'"
+				Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, condition<>" ORDER BY id DESC") end)
 			tab, acc -> Map.update!(acc, String.to_atom(tab), fn(_) -> gettab(tab, "") end)
 		end)
 	end
