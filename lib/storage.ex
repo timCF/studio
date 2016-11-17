@@ -216,11 +216,16 @@ defmodule Studio.Storage do
 		end
 	end
 
-	def update_session(raw_session = %Studio.Proto.Session{id: id}) when is_integer(id) do
+	def update_session(raw_session = %Studio.Proto.Session{id: id, status: this_status}) when is_integer(id) do
 		session = untransform_values(raw_session) |> Map.delete(:stamp)
 		keys = Map.keys(session)
+		[%{status: prev_status}] = Sqlx.exec("SELECT status FROM sessions WHERE id = ?;", [id], :studio)
 		case Sqlx.insert_duplicate([session], keys, [id], "sessions", :studio) do
-			%{error: []} -> update_session_apply_balance(raw_session)
+			%{error: []} ->
+				case (Maybe.maybe_to_string(prev_status) == Maybe.maybe_to_string(this_status)) do
+					true -> :ok
+					false -> update_session_apply_balance(raw_session)
+				end
 			error -> {:error, error}
 		end
 	end
