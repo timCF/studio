@@ -9,8 +9,8 @@ notifications:
   email: false
 before_script:
 - gem install sass
-- nvm install v4.6.2
-- nvm use v4.6.2
+- nvm install v6.6.0
+- nvm use v6.6.0
 - 'npm install -g npm'
 - 'npm install -g bower brunch iced-coffee-script LiveScript node-sass'
 - 'npm rebuild node-sass'
