@@ -132,7 +132,7 @@ defmodule Studio.Storage do
 	end
 	def can_session_be_saved(%Studio.Proto.Session{}), do: %Studio.Checks.Session{action: :error, message: "введены неверные данные"}
 
-	def can_session_be_saved_auto(%Studio.Proto.Session{time_from: tf, time_to: tt, band_id: band_id, room_id: room_id}) when (tf < tt) do
+	def can_session_be_saved_auto(%Studio.Proto.Session{time_from: tf, time_to: tt, band_id: band_id}) when (tf < tt) do
 		tf = Studio.ts2mysql(tf)
 		tt = Studio.ts2mysql(tt)
 		case	"""
@@ -142,10 +142,9 @@ defmodule Studio.Storage do
 							(time_from >= ? AND time_from < ?) OR
 							(time_to > ? AND time_to <= ?)
 						)
-						AND band_id = ?
-						AND room_id = ?;
+						AND band_id = ?;
 					"""
-					|> Sqlx.exec([tf,tt,tf,tt,tf,tt,band_id,room_id], :studio) do
+					|> Sqlx.exec([tf,tt,tf,tt,tf,tt,band_id], :studio) do
 				[] -> true
 				_ -> false
 		end
