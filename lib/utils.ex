@@ -81,17 +81,22 @@ defmodule Studio.Utils do
 		[this_band = %Studio.Proto.Band{}] = Enum.filter(bands, fn(%Studio.Proto.Band{id: id}) -> id == band_id end)
 		derive_instruments_price(this_session, instruments) + derive_session_price_process(this_session, this_band, this_room, get_max_sessions_num_around(this_session, sessions), discount_const)
 	end
-	defp get_max_sessions_num_around(%Studio.Proto.Session{id: id, band_id: band_id, time_from: time_from}, sessions) do
+	defp get_max_sessions_num_around(%Studio.Proto.Session{id: id, band_id: band_id, time_from: time_from, time_to: time_to}, sessions) do
+		this_sess_duration = Timex.DateTime.diff(time_from, time_to, :hours) |> abs
 		Stream.map((-30)..0, fn(n) -> ((0+n)..(30+n)) |> Enum.map(&(Timex.DateTime.shift(time_from, [days: &1]))) end)
 		|> Stream.map(fn(seq) ->
-			(Enum.filter(sessions, fn
+			Stream.filter(sessions, fn
 				%Studio.Proto.Session{id: ^id} ->
 					false
 				%Studio.Proto.Session{band_id: ^band_id, time_from: this_time, status: status} when (status in [:SS_awaiting_first, :SS_closed_ok]) ->
 					Enum.any?(seq, &(Timex.DateTime.to_days(&1) == Timex.DateTime.to_days(this_time)))
 				%Studio.Proto.Session{} ->
 					false
-			end) |> length) + 1
+			end)
+			|> Enum.reduce(this_sess_duration, fn(%Studio.Proto.Session{time_from: time_from, time_to: time_to}, acc) ->
+				acc + (Timex.DateTime.diff(time_from, time_to, :hours) |> abs)
+			end)
+			|> div(3)
 		end)
 		|> Enum.max
 	end
@@ -134,7 +139,13 @@ defmodule Studio.Utils do
 	defp derive_instruments_price(%Studio.Proto.Session{instruments_ids: ids, time_from: time_from = %Timex.DateTime{}, time_to: time_to = %Timex.DateTime{}}, instruments) do
 		Stream.filter(instruments, fn(%Studio.Proto.Instrument{id: id}) -> Enum.member?(ids, id) end)
 		|> Enum.reduce(0, fn(%Studio.Proto.Instrument{price: price}, acc) -> price + acc end)
-		|> (fn(amount) -> amount * (Timex.diff(time_from, time_to, :hours) / 3) end).()
+		|> (fn(amount) ->
+			dur = Timex.diff(time_from, time_to, :hours) |> abs
+			case rem(dur, 3) do
+				0 -> amount * div(dur, 3)
+				_ -> amount * (div(dur, 3) + 1)
+			end
+		end).()
 		|> round
 		|> abs
 	end
