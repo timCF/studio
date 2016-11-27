@@ -11,7 +11,8 @@ before_script:
 - gem install sass
 - nvm install v6.6.0
 - nvm use v6.6.0
-- 'npm install -g npm bower brunch iced-coffee-script LiveScript'
+- 'npm install -g npm bower brunch iced-coffee-script LiveScript node-sass'
+- 'npm rebuild node-sass'
 script:
 - echo "building clients"
 - make rebuild
