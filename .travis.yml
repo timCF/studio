@@ -8,7 +8,8 @@ otp_release:
 notifications:
   email: false
 before_script:
-- 'apt-get -y install nodejs'
+- nvm install v6.6.0
+- nvm use v6.6.0
 - 'npm install -g npm bower brunch'
 - gem install sass
 script:
