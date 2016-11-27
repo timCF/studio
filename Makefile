@@ -5,3 +5,5 @@ rebuild:
 	cd ./priv/studio_ui_admin && make rebuild
 	cd ./priv/studio_ui_observer && make rebuild
 	cd ./priv/studio_ui_iframe && make rebuild
+	rm -rf ./priv/*/node_modules
+	rm -rf ./priv/*/bower_components
