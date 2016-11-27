@@ -298,7 +298,8 @@ INSERT INTO `sessions`
 	`ordered_by`,
 	`admin_id_open`,
 	`admin_id_close`,
-	`transaction_id`
+	`transaction_id`,
+	`created_at`
 )
 VALUES
 (
@@ -316,7 +317,8 @@ VALUES
 	'SO_admin',
 	2,
 	2,
-	2
+	2,
+	'1998-08-02 18:00:00'
 ),
 (
 	'2016-08-05 18:00:00',
@@ -333,16 +335,17 @@ VALUES
 	'SO_admin',
 	2,
 	2,
-	2
+	2,
+	'1998-08-02 18:00:00'
 );
 
 
 
 INSERT INTO `sessions_template`
-( `min_from`, `min_to`, `week_day`, `room_id`, `instruments_ids`, `band_id`, `description`, `admin_id`, `enabled` )
+( `min_from`, `min_to`, `week_day`, `room_id`, `instruments_ids`, `band_id`, `description`, `admin_id`, `enabled`, `active_from` )
 VALUES
-( 1080, 1260, 'WD_3', 1, '[1,2]', 1, '', 2, 1 ),
-( 1260, 1440, 'WD_7', 1, '[1,2]', 1, '', 2, 1 );
+( 1080, 1260, 'WD_3', 1, '[1,2]', 1, '', 2, 1, '1998-08-02 18:00:00' ),
+( 1260, 1440, 'WD_7', 1, '[1,2]', 1, '', 2, 1, '1998-08-02 18:00:00' );
 
 UPDATE sessions SET admin_id_open = 1 WHERE admin_id_open = 0;
 UPDATE sessions SET admin_id_close = 1 WHERE admin_id_close = 0;
