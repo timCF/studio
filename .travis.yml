@@ -8,7 +8,6 @@ otp_release:
 notifications:
   email: false
 before_script:
-- 'apt-get instal wget python ruby'
 - gem install sass
 - nvm install v6.6.0
 - nvm use v6.6.0
