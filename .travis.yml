@@ -1,3 +1,4 @@
+sudo: required
 os:
 - linux
 language: elixir
@@ -9,8 +10,8 @@ notifications:
   email: false
 before_script:
 - gem install sass
-- nvm install v7.2.0
-- nvm use v7.2.0
+- nvm install v4.6.2
+- nvm use v4.6.2
 - 'npm install -g npm bower brunch iced-coffee-script LiveScript node-sass'
 - 'npm rebuild node-sass'
 script:
