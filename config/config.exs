@@ -59,9 +59,9 @@ config :pmaker,
 			# optional &decode/1 returns {:ok, term} | {:error, error}
 			# optional &encode/1
 			priv_path: "/studio_ui_admin/public", # path in priv dir for resource loader
-			cacertfile: "/root/certificates/ls.cu.cc/1_ls.cu.cc_bundle.crt",
-			certfile: "/root/certificates/ls.cu.cc/1_ls.cu.cc_bundle.crt",
-			keyfile: "/root/certificates/ls.cu.cc/ls.cu.cc.key",
+			cacertfile: "/etc/letsencrypt/live/crm.lemooorstudio.ru/chain.pem",
+			certfile: "/etc/letsencrypt/live/crm.lemooorstudio.ru/cert.pem",
+			keyfile: "/etc/letsencrypt/live/crm.lemooorstudio.ru/privkey.pem",
 		},
 		%{
 			module: "BulletObserver", # just server name
@@ -76,9 +76,9 @@ config :pmaker,
 			# optional &decode/1 returns {:ok, term} | {:error, error}
 			# optional &encode/1
 			priv_path: "/studio_ui_observer/public", # path in priv dir for resource loader
-			cacertfile: "/root/certificates/ls.cu.cc/1_ls.cu.cc_bundle.crt",
-			certfile: "/root/certificates/ls.cu.cc/1_ls.cu.cc_bundle.crt",
-			keyfile: "/root/certificates/ls.cu.cc/ls.cu.cc.key",
+			cacertfile: "/etc/letsencrypt/live/crm.lemooorstudio.ru/chain.pem",
+			certfile: "/etc/letsencrypt/live/crm.lemooorstudio.ru/cert.pem",
+			keyfile: "/etc/letsencrypt/live/crm.lemooorstudio.ru/privkey.pem",
 			},
 			%{
 				module: "BulletIframe", # just server name
@@ -93,8 +93,8 @@ config :pmaker,
 				# optional &decode/1 returns {:ok, term} | {:error, error}
 				# optional &encode/1
 				priv_path: "/studio_ui_iframe/public", # path in priv dir for resource loader
-				cacertfile: "/root/certificates/ls.cu.cc/1_ls.cu.cc_bundle.crt",
-				certfile: "/root/certificates/ls.cu.cc/1_ls.cu.cc_bundle.crt",
-				keyfile: "/root/certificates/ls.cu.cc/ls.cu.cc.key",
+				cacertfile: "/etc/letsencrypt/live/crm.lemooorstudio.ru/chain.pem",
+				certfile: "/etc/letsencrypt/live/crm.lemooorstudio.ru/cert.pem",
+				keyfile: "/etc/letsencrypt/live/crm.lemooorstudio.ru/privkey.pem",
 			}
 	]
