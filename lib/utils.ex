@@ -79,7 +79,7 @@ defmodule Studio.Utils do
 	def derive_session_price(this_session = %Studio.Proto.Session{room_id: room_id, band_id: band_id}, %Studio.Proto.FullState{rooms: rooms, sessions: sessions, discount_const: discount_const, bands: bands, instruments: instruments}) do
 		[this_room = %Studio.Proto.Room{}] = Enum.filter(rooms, fn(%Studio.Proto.Room{id: id}) -> id == room_id end)
 		[this_band = %Studio.Proto.Band{}] = Enum.filter(bands, fn(%Studio.Proto.Band{id: id}) -> id == band_id end)
-		derive_instruments_price(this_session, instruments) + derive_session_price_process(this_session, this_band, this_room, get_max_sessions_num_around(this_session, sessions), discount_const)
+		derive_instruments_price(this_session, instruments) + derive_session_price_workaround(this_session, this_band, this_room, get_max_sessions_num_around(this_session, sessions), discount_const)
 	end
 	defp get_max_sessions_num_around(%Studio.Proto.Session{id: id, band_id: band_id, time_from: time_from, time_to: time_to}, sessions) do
 		this_sess_duration = Timex.DateTime.diff(time_from, time_to, :hours) |> abs
@@ -115,6 +115,17 @@ defmodule Studio.Utils do
 			%Studio.Proto.DiscountConst{ unquote(field) => trueval } = Enum.max_by(unquote(lst), fn(%Studio.Proto.DiscountConst{ unquote(field) => val }) -> val end)
 			Enum.filter(unquote(lst), fn(%Studio.Proto.DiscountConst{ unquote(field) => val }) -> val == trueval end)
 		end
+	end
+
+	defp derive_session_price_workaround(session = %Studio.Proto.Session{time_from: time_from = %Timex.DateTime{}, time_to: time_to = %Timex.DateTime{}}, band = %Studio.Proto.Band{}, room = %Studio.Proto.Room{}, sessions_around_num, discount_const) when is_list(discount_const) do
+		-1 = Timex.DateTime.compare(time_from, time_to)
+		Enum.reduce_while(0..24, {time_from, 0}, fn(_, {this_time_from, acc}) ->
+			this_time_to = Timex.DateTime.shift(this_time_from, [hours: 1])
+			case Timex.DateTime.compare(this_time_to, time_to) do
+				-1 -> {:cont, {this_time_to, (acc + derive_session_price_process(%Studio.Proto.Session{session | time_from: this_time_from, time_to: this_time_to}, band, room, sessions_around_num, discount_const))}}
+				_ -> {:halt, (acc + derive_session_price_process(%Studio.Proto.Session{session | time_from: this_time_from, time_to: time_to}, band, room, sessions_around_num, discount_const))}
+			end
+		end)
 	end
 
 	defp derive_session_price_process(%Studio.Proto.Session{time_from: time_from = %Timex.DateTime{hour: hour, minute: minute}, time_to: time_to, week_day: swd}, %Studio.Proto.Band{kind: bk}, %Studio.Proto.Room{id: this_room, price_base: price_base}, sessions_around_num, discount_const) when is_list(discount_const) do
