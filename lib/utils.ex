@@ -126,6 +126,8 @@ defmodule Studio.Utils do
 				_ -> {:halt, (acc + derive_session_price_process(%Studio.Proto.Session{session | time_from: this_time_from, time_to: time_to}, band, room, sessions_around_num, discount_const))}
 			end
 		end)
+		|> round
+		|> abs
 	end
 
 	defp derive_session_price_process(%Studio.Proto.Session{time_from: time_from = %Timex.DateTime{hour: hour, minute: minute}, time_to: time_to, week_day: swd}, %Studio.Proto.Band{kind: bk}, %Studio.Proto.Room{id: this_room, price_base: price_base}, sessions_around_num, discount_const) when is_list(discount_const) do
@@ -144,7 +146,6 @@ defmodule Studio.Utils do
 			%Studio.Proto.DiscountConst{amount: amount, fixprice: true} -> amount * (session_duration / 3)
 			%Studio.Proto.DiscountConst{amount: amount, fixprice: false} -> (price_base - amount) * (session_duration / 3)
 		end
-		|> round
 		|> abs
 	end
 	defp derive_instruments_price(%Studio.Proto.Session{instruments_ids: ids, time_from: time_from = %Timex.DateTime{}, time_to: time_to = %Timex.DateTime{}}, instruments) do
