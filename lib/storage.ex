@@ -194,6 +194,8 @@ defmodule Studio.Storage do
 					[] -> %Studio.Checks.Session{acc | action: :save}
 					[%{status: status}] when (status in @end_status) -> %Studio.Checks.Session{acc | action: :error, message: "репетиция в это время уже закрыта"}
 					[%{id: id, status: status}] -> %Studio.Checks.Session{acc | action: :update, session_id: id, db_sess_status: Maybe.to_atom(status)}
+					# this case for session template
+					[%{id: id}] -> %Studio.Checks.Session{acc | action: :update, session_id: id}
 					[_|_] -> %Studio.Checks.Session{acc | action: :error, message: "данная группа уже репетирует в это время более одной сессии"}
 				end
 		end
