@@ -147,9 +147,9 @@ defmodule Studio.Storage do
 							(time_to > ? AND time_to <= ?)
 						)
 						AND band_id = ?
-						AND room_id = ?;
+						AND ( (room_id = ?) OR ((room_id != ?) AND (status = ?)) );
 					"""
-					|> Sqlx.exec([tf,tt,tf,tt,tf,tt,band_id,room_id], :studio) do
+					|> Sqlx.exec([tf,tt,tf,tt,tf,tt,band_id,room_id,room_id,"SS_awaiting_first"], :studio) do
 				[] -> true
 				_ -> false
 		end
