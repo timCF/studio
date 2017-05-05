@@ -142,6 +142,7 @@ defmodule Studio.Storage do
 		case	"""
 					SELECT id FROM sessions WHERE
 						(
+							(time_from <= ? AND time_to >= ?) OR
 							(time_from >= ? AND time_to <= ?) OR
 							(time_from >= ? AND time_from < ?) OR
 							(time_to > ? AND time_to <= ?)
@@ -149,7 +150,7 @@ defmodule Studio.Storage do
 						AND band_id = ?
 						AND ( (room_id = ?) OR ((room_id != ?) AND (status = ?)) );
 					"""
-					|> Sqlx.exec([tf,tt,tf,tt,tf,tt,band_id,room_id,room_id,"SS_awaiting_first"], :studio) do
+					|> Sqlx.exec([tf,tt,tf,tt,tf,tt,tf,tt,band_id,room_id,room_id,"SS_awaiting_first"], :studio) do
 				[] -> true
 				_ -> false
 		end
