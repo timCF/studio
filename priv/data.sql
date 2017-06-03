@@ -116,33 +116,7 @@ VALUES
 
 # education
 
-( 0, 'BK_education', 0, 0, "WD_default", 450, 1 ),
-
-#
-# indie
-#
-
-( 8, 'BK_base', 0, 0, "WD_default", 200, 0 ),
-( 8, 'BK_base', 0, 1020, "WD_default", 0, 0 ),
-( 8, 'BK_base', 4, 0, "WD_default", 300, 0 ),
-( 8, 'BK_base', 4, 1020, "WD_default", 100, 0 ),
-( 8, 'BK_base', 8, 0, "WD_default", 400, 0 ),
-( 8, 'BK_base', 8, 1020, "WD_default", 200, 0 ),
-
-( 8, 'BK_base', 0, 0, "WD_6", 0, 0 ),
-( 8, 'BK_base', 4, 0, "WD_6", 100, 0 ),
-( 8, 'BK_base', 8, 0, "WD_6", 200, 0 ),
-
-( 8, 'BK_base', 0, 0, "WD_7", 0, 0 ),
-( 8, 'BK_base', 4, 0, "WD_7", 100, 0 ),
-( 8, 'BK_base', 8, 0, "WD_7", 200, 0 ),
-
-( 8, 'BK_cover', 0, 0, "WD_default", 600, 1 ),
-( 8, 'BK_cover', 0, 1020, "WD_default", 0, 0 ),
-( 8, 'BK_cover', 0, 0, "WD_6", 0, 0 ),
-( 8, 'BK_cover', 0, 0, "WD_7", 0, 0 ),
-
-( 8, 'BK_education', 0, 0, "WD_default", 450, 1 )
+( 0, 'BK_education', 0, 0, "WD_default", 450, 1 )
 
 ON DUPLICATE KEY UPDATE
 band_kind = VALUES(band_kind),
