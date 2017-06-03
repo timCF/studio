@@ -38,11 +38,11 @@ VALUES
 ( 11, 'metal', 2, '#ff9900', 1300, 1 ),
 ( 12, 'modern_rock', 2, '#0066ff', 1300, 1 ),
 # lemooor_3
-( 13, 'metalcore', 3, '#b0c4de', 1500, 1 ),
-( 14, 'old_school', 3, '#ffbbff', 1500, 1 ),
-( 15, 'rock_n_roll', 3, '#ff6a6a', 1200, 1 ),
-( 16, 'blues', 3, '#54ff9f', 1200, 1 ),
-( 17, 'punk_rock', 3, '#ffe4b5', 1200, 1 )
+( 13, 'metalcore', 3, '#3A75C4', 1500, 1 ),
+( 14, 'old_school', 3, '#9966CC', 1500, 1 ),
+( 15, 'rock_n_roll', 3, '#DC143C', 1200, 1 ),
+( 16, 'blues', 3, '#03C03C', 1200, 1 ),
+( 17, 'punk_rock', 3, '#B87333', 1200, 1 )
 ON DUPLICATE KEY UPDATE
 name = VALUES(name),
 location_id = VALUES(location_id),
